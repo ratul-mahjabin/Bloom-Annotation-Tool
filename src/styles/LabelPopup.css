@@ -1,0 +1,132 @@
+.label-popup {
+  background: white;
+  border: 2px solid #667eea;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+  z-index: 1000;
+  max-width: 350px;
+  min-width: 300px;
+  animation: popupSlideIn 0.3s ease;
+  position: absolute !important;
+}
+
+@keyframes popupSlideIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.popup-header {
+  margin-bottom: 15px;
+  border-bottom: 2px solid #f0f0f0;
+  padding-bottom: 10px;
+}
+
+.popup-header h3 {
+  margin: 0;
+  font-size: 1.1em;
+  color: #333;
+}
+
+.bloom-selector-popup {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 15px;
+  max-height: 300px;
+  overflow-y: auto;
+  padding: 10px 0;
+}
+
+.bloom-option-popup {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px;
+  border: 2px solid #ddd;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background: white;
+}
+
+.bloom-option-popup:hover {
+  border-color: #667eea;
+  background: #f9f9f9;
+}
+
+.bloom-option-popup.selected {
+  font-weight: 600;
+}
+
+.bloom-option-popup input[type="checkbox"] {
+  margin-top: 2px;
+  cursor: pointer;
+  accent-color: #667eea;
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+.level-name {
+  font-weight: 600;
+  color: #333;
+  min-width: 70px;
+  font-size: 0.95em;
+}
+
+.level-desc {
+  font-size: 0.8em;
+  color: #999;
+  line-height: 1.3;
+}
+
+.popup-actions {
+  display: flex;
+  gap: 10px;
+  border-top: 2px solid #f0f0f0;
+  padding-top: 15px;
+}
+
+.btn-confirm,
+.btn-cancel {
+  flex: 1;
+  padding: 10px;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 0.95em;
+}
+
+.btn-confirm {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.btn-confirm:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+}
+
+.btn-confirm:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-cancel {
+  background: #f0f0f0;
+  color: #333;
+  border: 2px solid #ddd;
+}
+
+.btn-cancel:hover {
+  background: #e0e0e0;
+}

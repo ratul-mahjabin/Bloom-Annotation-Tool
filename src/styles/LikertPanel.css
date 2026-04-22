@@ -1,0 +1,414 @@
+.likert-panel {
+  background: white;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.panel-header {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.header-title-section {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.panel-header h3 {
+  font-size: 1.1em;
+  margin: 0;
+  color: #333;
+}
+
+.info-button {
+  background: none;
+  border: none;
+  font-size: 1.2em;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+  transition: transform 0.2s ease;
+}
+
+.info-button:hover {
+  transform: scale(1.2);
+}
+
+.rubrics-modal {
+  background: #f5f5f5;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 10px;
+  max-height: 600px;
+  overflow-y: auto;
+}
+
+.rubrics-content h3 {
+  margin-top: 0;
+  margin-bottom: 20px;
+  color: #333;
+  font-size: 1.1em;
+}
+
+.score-rubric-item {
+  background: white;
+  border-left: 4px solid #667eea;
+  padding: 15px;
+  margin-bottom: 15px;
+  border-radius: 4px;
+}
+
+.score-level {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.score-star {
+  font-size: 1.3em;
+  min-width: 80px;
+  display: flex;
+  gap: 2px;
+}
+
+.score-title {
+  font-weight: 700;
+  color: #333;
+  font-size: 0.95em;
+}
+
+.score-description {
+  margin-left: 92px;
+  color: #666;
+  font-size: 0.9em;
+}
+
+.score-description p {
+  margin: 6px 0;
+  line-height: 1.4;
+}
+
+.score-description p:first-child {
+  margin-top: 0;
+}
+
+.global-rubric-item {
+  background: white;
+  border-left: 4px solid #667eea;
+  padding: 15px;
+  margin-bottom: 15px;
+  border-radius: 4px;
+}
+
+.global-rubric-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.rubric-level-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 70px;
+  min-height: 40px;
+  border-radius: 4px;
+  color: white;
+  font-weight: 600;
+  font-size: 0.85em;
+  flex-shrink: 0;
+}
+
+.rubric-level-text {
+  flex: 1;
+}
+
+.rubric-definition {
+  font-weight: 600;
+  color: #333;
+  margin: 0;
+}
+
+.rubric-detail {
+  margin: 12px 0;
+  color: #666;
+  font-size: 0.95em;
+}
+
+.rubric-detail strong {
+  display: block;
+  margin-bottom: 6px;
+  color: #333;
+}
+
+.rubric-detail ul {
+  margin: 8px 0;
+  padding-left: 20px;
+  list-style: disc;
+}
+
+.rubric-detail li {
+  margin: 4px 0;
+  line-height: 1.4;
+}
+
+.panel-subtitle {
+  font-size: 0.9em;
+  color: #999;
+  margin: 0;
+}
+
+.likert-scales {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.likert-item {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 15px;
+  background: #f9f9f9;
+  border-radius: 6px;
+  border-left: 4px solid #667eea;
+}
+
+.likert-question {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.level-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 60px;
+  min-height: 40px;
+  border-radius: 4px;
+  color: white;
+  font-weight: 600;
+  font-size: 0.85em;
+  flex-shrink: 0;
+}
+
+.question-section {
+  flex: 1;
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+.question-section label {
+  flex: 1;
+  font-size: 0.95em;
+  color: #333;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.level-info-button {
+  background: none;
+  border: none;
+  font-size: 1em;
+  cursor: pointer;
+  padding: 2px 6px;
+  line-height: 1;
+  transition: transform 0.2s ease;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.level-info-button:hover {
+  transform: scale(1.2);
+}
+
+.level-rubric-expanded {
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 12px;
+  margin-bottom: 10px;
+  margin-left: 72px;
+  font-size: 0.9em;
+  color: #666;
+}
+
+.expanded-definition {
+  margin-bottom: 10px;
+}
+
+.expanded-definition strong {
+  display: block;
+  margin-bottom: 6px;
+  color: #333;
+}
+
+.expanded-uses {
+  margin-bottom: 10px;
+}
+
+.expanded-uses strong {
+  display: block;
+  margin-bottom: 6px;
+  color: #333;
+}
+
+.expanded-uses ul {
+  margin: 0;
+  padding-left: 20px;
+  list-style: disc;
+}
+
+.expanded-uses li {
+  margin: 3px 0;
+  line-height: 1.3;
+}
+
+.expanded-minimum {
+  border-top: 1px solid #eee;
+  padding-top: 8px;
+}
+
+.expanded-minimum strong {
+  display: block;
+  margin-bottom: 6px;
+  color: #333;
+}
+
+.likert-options {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+
+.likert-button {
+  flex: 1;
+  min-width: 80px;
+  padding: 12px 8px;
+  background: white;
+  border: 2px solid #ddd;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  text-align: center;
+}
+
+.score-number {
+  font-size: 1.2em;
+  font-weight: 700;
+  color: #667eea;
+}
+
+.score-label {
+  font-size: 0.7em;
+  color: #666;
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+.likert-button:hover {
+  border-color: #667eea;
+  background: #f0f0ff;
+  transform: translateY(-2px);
+}
+
+.likert-button.selected {
+  background: #667eea;
+  border-color: #667eea;
+  color: white;
+}
+
+.likert-button.selected .score-number {
+  color: white;
+}
+
+.likert-button.selected .score-label {
+  color: white;
+}
+
+.comment-section {
+  border-top: 2px solid #e0e0e0;
+  padding-top: 20px;
+}
+
+.comment-section h3 {
+  font-size: 1.1em;
+  margin-bottom: 8px;
+  color: #333;
+}
+
+.comment-box {
+  width: 100%;
+  padding: 12px;
+  border: 2px solid #ddd;
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 0.95em;
+  color: #333;
+  resize: vertical;
+  transition: all 0.3s ease;
+}
+
+.comment-box:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.panel-footer {
+  border-top: 2px solid #e0e0e0;
+  padding-top: 20px;
+  text-align: center;
+}
+
+.btn-save-final {
+  width: 100%;
+  padding: 14px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-weight: 700;
+  font-size: 1em;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-bottom: 10px;
+}
+
+.btn-save-final:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+}
+
+@media (max-width: 768px) {
+  .likert-button {
+    padding: 10px 4px;
+    min-width: 60px;
+  }
+
+  .score-number {
+    font-size: 1em;
+  }
+
+  .score-label {
+    font-size: 0.6em;
+  }
+}
