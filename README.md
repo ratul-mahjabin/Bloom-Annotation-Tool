@@ -23,6 +23,7 @@ The **Bloom Annotation Tool** is an interactive interface designed to support th
 
 ### 🔁 Trace-back & Edit Annotations
 - Full **trace-back functionality** to revisit previously annotated segments.
+- Label(s) can be modified by directly clicking the highlighted text span
 - Modify or update labels seamlessly without losing prior work.
 
 ### 📚 Integrated Annotation Rubrics
