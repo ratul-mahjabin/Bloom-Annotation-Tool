@@ -7,7 +7,8 @@ const ChatDisplay = forwardRef(({
   onTextSelect,
   selectedText,
   onRemoveAnnotation,
-  roleFilter
+  roleFilter,
+  onAnnotationClick
 }, ref) => {
 
   const renderTurnWithAnnotations = (turn, turnIdx) => {
@@ -131,6 +132,12 @@ const ChatDisplay = forwardRef(({
             data-annotation-id={segment.annotation.id}
             data-turn-index={segment.annotation.turnIndex}
             data-offset={segment.annotation.offsetInTurn}
+            onClick={(e) => {
+              e.stopPropagation();
+              if (onAnnotationClick) {
+                onAnnotationClick(segment.annotation);
+              }
+            }}
           >
             {segment.content}
           </span>

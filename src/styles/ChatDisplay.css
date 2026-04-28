@@ -98,6 +98,12 @@
   color: #333;
   border-radius: 2px;
   padding: 1px 2px;
+  transition: all 0.2s ease;
+}
+
+.annotated-text:hover {
+  background-color: #FFD700;
+  box-shadow: 0 0 8px rgba(255, 215, 0, 0.6);
 }
 
 .message-bubble.user-role .annotated-text {

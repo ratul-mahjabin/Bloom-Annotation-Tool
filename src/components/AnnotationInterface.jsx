@@ -318,6 +318,7 @@ function AnnotationInterface({ annotatorName, prolificId, cidNumber, onBack }) {
             selectedText={selectedText}
             onRemoveAnnotation={handleRemoveAnnotation}
             roleFilter={roleFilter}
+            onAnnotationClick={handleAnnotationClick}
           />
         </div>
 
