@@ -11,7 +11,6 @@ function LikertPanel({
   onSave,
   isSaving
 }) {
-  const [showRubrics, setShowRubrics] = useState(false);
   const [expandedRubric, setExpandedRubric] = useState(null);
 
   const bloomDescriptions = {
@@ -109,82 +108,9 @@ function LikertPanel({
       <div className="panel-header">
         <div className="header-title-section">
           <h3>📊 Cognitive Depth Assessment</h3>
-          <button 
-            className="info-button"
-            onClick={() => setShowRubrics(!showRubrics)}
-            title="View score rubrics"
-          >
-            ℹ️
-          </button>
         </div>
         <p className="panel-subtitle">Rate the evidence of each Bloom level (1-5) ⭐</p>
       </div>
-
-      {showRubrics && (
-        <div className="rubrics-modal">
-          <div className="rubrics-content">
-            <h3>Score Rubrics</h3>
-            <p style={{ marginBottom: '20px', fontSize: '0.95em', color: '#555' }}>
-              For each Bloom level, rate: <strong>"To what extent does the participant demonstrate this level?"</strong>
-            </p>
-            
-            <div className="score-rubric-item">
-              <div className="score-level">
-                <span className="score-star">⭐</span>
-                <span className="score-title">1 — Not present</span>
-              </div>
-              <div className="score-description">
-                <p>No valid evidence meeting the minimum criteria</p>
-                <p>Content is absent, trivial, or irrelevant</p>
-              </div>
-            </div>
-
-            <div className="score-rubric-item">
-              <div className="score-level">
-                <span className="score-star">⭐⭐</span>
-                <span className="score-title">2 — Weak/unclear</span>
-              </div>
-              <div className="score-description">
-                <p>Attempted, but does not fully meet the minimum criteria</p>
-                <p>Reasoning is vague, incomplete, or partially incorrect</p>
-              </div>
-            </div>
-
-            <div className="score-rubric-item">
-              <div className="score-level">
-                <span className="score-star">⭐⭐⭐</span>
-                <span className="score-title">3 — Basic presence</span>
-              </div>
-              <div className="score-description">
-                <p>At least one clear instance meeting the minimum criteria</p>
-                <p>Correct but limited depth or elaboration</p>
-              </div>
-            </div>
-
-            <div className="score-rubric-item">
-              <div className="score-level">
-                <span className="score-star">⭐⭐⭐⭐</span>
-                <span className="score-title">4 — Strong demonstration</span>
-              </div>
-              <div className="score-description">
-                <p>Well-developed reasoning OR multiple valid instances</p>
-                <p>Clear structure, coherence, and logical development</p>
-              </div>
-            </div>
-
-            <div className="score-rubric-item">
-              <div className="score-level">
-                <span className="score-star">⭐⭐⭐⭐⭐</span>
-                <span className="score-title">5 — Exceptional demonstration</span>
-              </div>
-              <div className="score-description">
-                <p>At least one instance showing exceptional depth, clarity, or insight, OR sustained high-quality reasoning across turns</p>
-                <p>Demonstrates precise, nuanced, and well-integrated thinking</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
 
       <div className="likert-scales">
         {bloomLevels.map((level) => (

@@ -3,6 +3,7 @@ import ChatDisplay from './ChatDisplay';
 import AnnotationPanel from './AnnotationPanel';
 import LabelPopup from './LabelPopup';
 import LikertPanel from './LikertPanel';
+import RubricsModal from './RubricsModal';
 import '../styles/AnnotationInterface.css';
 
 function AnnotationInterface({ annotatorName, prolificId, cidNumber, onBack }) {
@@ -28,6 +29,7 @@ function AnnotationInterface({ annotatorName, prolificId, cidNumber, onBack }) {
   const [showLabelPopup, setShowLabelPopup] = useState(false);
   const [labelPopupPosition, setLabelPopupPosition] = useState(null);
   const [selectedLabelsForPopup, setSelectedLabelsForPopup] = useState([]);
+  const [showRubricsModal, setShowRubricsModal] = useState(false);
   const chatDisplayRef = useRef();
 
   const bloomLevels = ['remember', 'understand', 'apply', 'analyze', 'evaluate', 'create'];
@@ -371,6 +373,19 @@ function AnnotationInterface({ annotatorName, prolificId, cidNumber, onBack }) {
           isEditing={!!editingAnnotation}
         />
       )}
+
+      <button
+        className="floating-rubrics-button"
+        onClick={() => setShowRubricsModal(!showRubricsModal)}
+        title="View rubrics"
+      >
+        📚
+      </button>
+
+      <RubricsModal
+        isOpen={showRubricsModal}
+        onClose={() => setShowRubricsModal(false)}
+      />
     </div>
   );
 }

@@ -1,0 +1,373 @@
+.rubrics-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.rubrics-modal-content {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+  max-width: 900px;
+  width: 100%;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.rubrics-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px;
+  border-bottom: 2px solid #f0f0f0;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 12px 12px 0 0;
+}
+
+.rubrics-modal-header h2 {
+  margin: 0;
+  color: white;
+  font-size: 1.5em;
+  font-weight: 700;
+}
+
+.rubrics-close-btn {
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  font-size: 1.2em;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  padding: 0;
+}
+
+.rubrics-close-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(1.1);
+}
+
+.rubrics-modal-body {
+  overflow-y: auto;
+  padding: 24px;
+  flex: 1;
+}
+
+.rubrics-section {
+  margin-bottom: 32px;
+}
+
+.rubrics-section:last-child {
+  margin-bottom: 0;
+}
+
+.rubrics-section h3 {
+  margin: 0 0 20px 0;
+  color: #333;
+  font-size: 1.2em;
+  font-weight: 700;
+  padding-bottom: 10px;
+  border-bottom: 2px solid #667eea;
+}
+
+.rubrics-intro {
+  margin: 0 0 20px 0;
+  font-size: 0.95em;
+  color: #555;
+  line-height: 1.5;
+}
+
+/* Score Rubric Items */
+.score-rubric-item {
+  background: white;
+  border-left: 4px solid #667eea;
+  padding: 16px;
+  margin-bottom: 12px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.score-rubric-item:hover {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  transform: translateX(2px);
+}
+
+.score-level {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.score-star {
+  font-size: 1.2em;
+  min-width: 100px;
+  display: flex;
+  gap: 2px;
+}
+
+.score-title {
+  font-weight: 700;
+  color: #333;
+  font-size: 0.95em;
+}
+
+.score-description {
+  margin-left: 112px;
+  color: #666;
+  font-size: 0.9em;
+}
+
+.score-description p {
+  margin: 6px 0;
+  line-height: 1.5;
+}
+
+.score-description p:first-child {
+  margin-top: 0;
+}
+
+.score-description p:last-child {
+  margin-bottom: 0;
+}
+
+/* Bloom Rubrics List */
+.bloom-rubrics-list {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+.bloom-rubric-card {
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  overflow: hidden;
+  transition: all 0.2s ease;
+  background: white;
+}
+
+.bloom-rubric-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.bloom-rubric-card.expanded {
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+  border-color: #667eea;
+}
+
+.bloom-rubric-header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px;
+  background: #f9f9f9;
+  border: none;
+  border-left: 4px solid;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+}
+
+.bloom-rubric-header:hover {
+  background: #f0f0f0;
+}
+
+.bloom-rubric-card.expanded .bloom-rubric-header {
+  background: #f0f0f0;
+  border-left-width: 4px;
+}
+
+.bloom-level-badge {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 20px;
+  color: white;
+  font-weight: 600;
+  font-size: 0.9em;
+  min-width: 100px;
+  text-align: center;
+}
+
+.bloom-toggle-icon {
+  font-size: 0.8em;
+  color: #666;
+  transition: transform 0.2s ease;
+  margin-left: 12px;
+}
+
+.bloom-rubric-card.expanded .bloom-toggle-icon {
+  transform: rotate(0deg);
+}
+
+.bloom-rubric-body {
+  padding: 16px;
+  border-top: 1px solid #e0e0e0;
+  background: #fafafa;
+}
+
+.rubric-section {
+  margin-bottom: 16px;
+}
+
+.rubric-section:last-child {
+  margin-bottom: 0;
+}
+
+.rubric-section strong {
+  display: block;
+  margin-bottom: 8px;
+  color: #333;
+  font-weight: 600;
+}
+
+.rubric-section p {
+  margin: 0;
+  color: #555;
+  line-height: 1.6;
+  font-size: 0.95em;
+}
+
+.rubric-section ul {
+  margin: 0;
+  padding-left: 20px;
+  color: #555;
+  line-height: 1.6;
+  font-size: 0.95em;
+}
+
+.rubric-section li {
+  margin: 6px 0;
+}
+
+/* Floating Button */
+.floating-rubrics-button {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  font-size: 1.8em;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  z-index: 100;
+}
+
+.floating-rubrics-button:hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+}
+
+.floating-rubrics-button:active {
+  transform: scale(0.95);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .rubrics-modal-content {
+    max-height: 90vh;
+    margin: 0;
+  }
+
+  .rubrics-modal-header {
+    padding: 16px;
+  }
+
+  .rubrics-modal-header h2 {
+    font-size: 1.2em;
+  }
+
+  .rubrics-modal-body {
+    padding: 16px;
+  }
+
+  .floating-rubrics-button {
+    bottom: 20px;
+    right: 20px;
+    width: 56px;
+    height: 56px;
+    font-size: 1.6em;
+  }
+
+  .score-star {
+    min-width: 80px;
+  }
+
+  .score-description {
+    margin-left: 92px;
+  }
+}
+
+@media (max-width: 480px) {
+  .rubrics-modal-overlay {
+    padding: 10px;
+  }
+
+  .rubrics-modal-content {
+    max-height: 95vh;
+  }
+
+  .rubrics-modal-header h2 {
+    font-size: 1.1em;
+  }
+
+  .rubrics-modal-body {
+    padding: 12px;
+  }
+
+  .rubrics-section h3 {
+    font-size: 1em;
+  }
+
+  .score-rubric-item {
+    padding: 12px;
+  }
+
+  .bloom-rubric-header {
+    padding: 12px;
+    flex-wrap: wrap;
+  }
+
+  .floating-rubrics-button {
+    bottom: 15px;
+    right: 15px;
+    width: 52px;
+    height: 52px;
+    font-size: 1.4em;
+  }
+}

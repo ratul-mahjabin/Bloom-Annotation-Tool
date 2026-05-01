@@ -159,3 +159,53 @@
   color: #ff6b6b;
   font-weight: bold;
 }
+
+/* Floating Rubrics Button */
+.floating-rubrics-button {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  font-size: 1.8em;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  z-index: 100;
+}
+
+.floating-rubrics-button:hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+}
+
+.floating-rubrics-button:active {
+  transform: scale(0.95);
+}
+
+@media (max-width: 768px) {
+  .floating-rubrics-button {
+    bottom: 20px;
+    right: 20px;
+    width: 56px;
+    height: 56px;
+    font-size: 1.6em;
+  }
+}
+
+@media (max-width: 480px) {
+  .floating-rubrics-button {
+    bottom: 15px;
+    right: 15px;
+    width: 52px;
+    height: 52px;
+    font-size: 1.4em;
+  }
+}
