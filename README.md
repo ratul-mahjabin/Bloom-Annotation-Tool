@@ -45,6 +45,37 @@ The **Bloom Annotation Tool** is an interactive interface designed to support th
 
 ---
 
+## 🖥️ Installation & Running
+
+### Prerequisites
+
+- [Node.js](https://nodejs.org/) v18 or later
+- The conversation CSV file `treatment_transcripts_with_stage.csv` placed in the project root (not tracked by git)
+
+### Steps
+
+```bash
+# 1. Install dependencies
+npm install
+
+# 2. Build the frontend and start the server
+npm start
+```
+
+The app will be available at **[http://localhost:3000](http://localhost:3000)**.
+
+> **Note:** `http://localhost:5173` is Vite's development server and is only active when running `npm run dev` (frontend only, no API). For full functionality — including loading conversations and saving annotations — always use `npm start` and access port **3000**.
+
+### Switching Annotators
+
+The annotator name is stored in the browser's local storage. To switch to a different annotator on the same machine:
+
+1. Click the **"Change Name"** button in the conversation browser.
+2. You will be returned to the welcome screen to enter a new name.
+3. Each annotator's saved annotations are stored separately under `annotations/<name>/` on the server.
+
+---
+
 ## 🛠️ Usage Overview
 
 1. Enter your **annotator name**.
