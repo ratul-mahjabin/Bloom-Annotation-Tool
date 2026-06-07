@@ -32,14 +32,15 @@ function AnnotationInterface({ annotatorName, prolificId, cidNumber, onBack }) {
   const [showRubricsModal, setShowRubricsModal] = useState(false);
   const chatDisplayRef = useRef();
 
-  const bloomLevels = ['remember', 'understand', 'apply', 'analyze', 'evaluate', 'create'];
+  const bloomLevels = ['remember', 'understand', 'apply', 'analyze', 'evaluate', 'create', 'confused'];
   const bloomLabels = {
     remember: 'Remember',
     understand: 'Understand',
     apply: 'Apply',
     analyze: 'Analyze',
     evaluate: 'Evaluate',
-    create: 'Create'
+    create: 'Create',
+    confused: 'Confused'
   };
 
   useEffect(() => {
@@ -339,7 +340,7 @@ function AnnotationInterface({ annotatorName, prolificId, cidNumber, onBack }) {
           <LikertPanel
             bloomScores={bloomScores}
             comment={comment}
-            bloomLevels={bloomLevels}
+            bloomLevels={bloomLevels.filter(level => level !== 'confused')}
             bloomLabels={bloomLabels}
             onScoreChange={(level, score) => {
               setBloomScores({ ...bloomScores, [level]: score });

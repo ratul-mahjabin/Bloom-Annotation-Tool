@@ -11,6 +11,16 @@ const ChatDisplay = forwardRef(({
   onAnnotationClick
 }, ref) => {
 
+  const bloomColors = {
+    remember: '#FFB3BA',      // Bright coral red
+    understand: '#FFDFBA',    // Bright peach orange
+    apply: '#FFFFBA',         // Bright golden yellow
+    analyze: '#BAFFC9',       // Bright mint green
+    evaluate: '#BAE1FF',      // Bright sky blue
+    create: '#D4A5E6',        // Deep lavender purple
+    confused: '#FF6B6B'       // Bright red
+  };
+
   const renderTurnWithAnnotations = (turn, turnIdx) => {
     const turnLabelClass = turn.role === 'assistant' ? 'ai-role' : 'user-role';
     const roleLabel = turn.role === 'assistant' ? '🤖 AI' : '👤 User';
@@ -123,15 +133,20 @@ const ChatDisplay = forwardRef(({
       if (segment.type === 'text') {
         return <span key={idx}>{segment.content}</span>;
       } else {
+        // Determine background color based on the first label
+        const primaryLabel = segment.annotation.labels[0];
+        const backgroundColor = bloomColors[primaryLabel] || '#FFFF00';
+
         return (
           <span
             key={idx}
             className="annotated-text"
-            style={{ backgroundColor: '#FFFF00' }}
+            style={{ backgroundColor }}
             title={`${segment.annotation.labels.join(', ')}`}
             data-annotation-id={segment.annotation.id}
             data-turn-index={segment.annotation.turnIndex}
             data-offset={segment.annotation.offsetInTurn}
+            data-label={primaryLabel}
             onClick={(e) => {
               e.stopPropagation();
               if (onAnnotationClick) {

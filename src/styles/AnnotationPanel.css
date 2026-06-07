@@ -159,6 +159,10 @@
   white-space: nowrap;
 }
 
+.level-badge[style*="#95A5A6"] {
+  font-style: italic;
+}
+
 .annotation-actions {
   display: flex;
   gap: 0.5rem;

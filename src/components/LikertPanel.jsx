@@ -95,12 +95,12 @@ function LikertPanel({
   };
 
   const bloomColors = {
-    remember: '#FF6B6B',
-    understand: '#4ECDC4',
-    apply: '#45B7D1',
-    analyze: '#FFA07A',
-    evaluate: '#98D8C8',
-    create: '#F7DC6F'
+    remember: '#FFB3BA',      // Bright coral red
+    understand: '#FFDFBA',    // Bright peach orange
+    apply: '#FFFFBA',         // Bright golden yellow
+    analyze: '#BAFFC9',       // Bright mint green
+    evaluate: '#BAE1FF',      // Bright sky blue
+    create: '#D4A5E6'         // Deep lavender purple
   };
 
   return (

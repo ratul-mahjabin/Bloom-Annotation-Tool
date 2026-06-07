@@ -65,6 +65,16 @@ function RubricsModal({ isOpen, onClose }) {
         'designs a method, rule set, or guideline'
       ],
       minimum: 'Must include novel synthesis not directly restated or implied by the prompt'
+    },
+    confused: {
+      definition: 'The response is ambiguous and cannot be clearly classified.',
+      uses: [
+        'response could fit multiple Bloom levels equally well',
+        'response is too vague or unclear to categorize',
+        'response seems to contain contradictory evidence',
+        'annotator is genuinely uncertain about the best classification'
+      ],
+      minimum: 'Use this sparingly when you genuinely cannot decide. These cases will be reviewed and discussed in group meetings.'
     }
   };
 
@@ -74,19 +84,21 @@ function RubricsModal({ isOpen, onClose }) {
     apply: 'Apply',
     analyze: 'Analyze',
     evaluate: 'Evaluate',
-    create: 'Create'
+    create: 'Create',
+    confused: 'Confused/Unsure'
   };
 
   const bloomColors = {
-    remember: '#FF6B6B',
-    understand: '#4ECDC4',
-    apply: '#45B7D1',
-    analyze: '#FFA07A',
-    evaluate: '#98D8C8',
-    create: '#F7DC6F'
+    remember: '#FFB3BA',      // Bright coral red
+    understand: '#FFDFBA',    // Bright peach orange
+    apply: '#FFFFBA',         // Bright golden yellow
+    analyze: '#BAFFC9',       // Bright mint green
+    evaluate: '#BAE1FF',      // Bright sky blue
+    create: '#D4A5E6',        // Deep lavender purple
+    confused: '#FF6B6B'       // Bright red
   };
 
-  const bloomLevels = ['remember', 'understand', 'apply', 'analyze', 'evaluate', 'create'];
+  const bloomLevels = ['remember', 'understand', 'apply', 'analyze', 'evaluate', 'create', 'confused'];
 
   const scoreLabels = {
     1: 'Not present',
