@@ -7,7 +7,7 @@
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
+  height: 100vh;
 }
 
 .annotation-header {
@@ -20,6 +20,14 @@
   border-bottom: 4px solid rgba(255, 255, 255, 0.1);
   flex-wrap: wrap;
   gap: 15px;
+  position: fixed;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 1600px;
+  z-index: 1000;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .header-left {
@@ -108,14 +116,18 @@
   grid-template-columns: 1fr 1fr;
   gap: 20px;
   padding: 20px;
+  padding-top: 140px;
   flex: 1;
-  overflow-y: auto;
+  overflow: hidden;
+  height: calc(100vh - 140px);
 }
 
 .chat-section {
   min-width: 0;
   overflow-y: auto;
   position: relative;
+  height: 100%;
+  max-height: calc(100vh - 140px - 40px);
 }
 
 .control-section {
@@ -123,6 +135,9 @@
   flex-direction: column;
   gap: 20px;
   overflow-y: auto;
+  height: 100%;
+  max-height: calc(100vh - 140px - 40px);
+  padding-right: 5px;
 }
 
 @media (max-width: 1200px) {

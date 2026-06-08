@@ -12,12 +12,13 @@ function LabelPopup({
   isEditing
 }) {
   const bloomColors = {
-    remember: '#FF6B6B',
-    understand: '#4ECDC4',
-    apply: '#45B7D1',
-    analyze: '#FFA07A',
-    evaluate: '#98D8C8',
-    create: '#F7DC6F'
+    remember: '#FFB3BA',      // Bright coral red
+    understand: '#FFDFBA',    // Bright peach orange
+    apply: '#FFFFBA',         // Bright golden yellow
+    analyze: '#BAFFC9',       // Bright mint green
+    evaluate: '#BAE1FF',      // Bright sky blue
+    create: '#D4A5E6',        // Deep lavender purple
+    confused: '#FF6B6B'       // Bright red
   };
 
   const bloomDescriptions = {
@@ -26,7 +27,8 @@ function LabelPopup({
     apply: 'Use information in new situations',
     analyze: 'Draw connections among ideas',
     evaluate: 'Justify a stand or decision',
-    create: 'Produce new or original work'
+    create: 'Produce new or original work',
+    confused: 'Ambiguous case - unable to classify clearly'
   };
 
   return (
