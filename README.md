@@ -92,4 +92,4 @@ Annotations are exported in structured JSON format, typically including:
 - Annotator metadata  
 - Conversation identifiers  
 - Annotated text spans  
-- Assigned Bloom’s taxonomy labels 
+- Assigned Bloom’s taxonomy labels
