@@ -89,7 +89,7 @@
   }
 }
 
-.btn-back, .btn-save {
+.btn-home, .btn-save {
   padding: 10px 15px;
   background: white;
   border: 2px solid white;
@@ -101,13 +101,41 @@
   font-size: 0.95em;
 }
 
-.btn-back:hover, .btn-save:hover {
+.btn-home:hover, .btn-save:hover {
   background: rgba(255, 255, 255, 0.1);
   color: white;
 }
 
 .btn-save:disabled {
   opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.nav-group {
+  display: flex;
+  gap: 4px;
+}
+
+.btn-nav {
+  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.15);
+  border: 2px solid rgba(255, 255, 255, 0.6);
+  color: white;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  font-size: 0.9em;
+  white-space: nowrap;
+}
+
+.btn-nav:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.3);
+  border-color: white;
+}
+
+.btn-nav:disabled {
+  opacity: 0.35;
   cursor: not-allowed;
 }
 

@@ -6,7 +6,7 @@ import LikertPanel from './LikertPanel';
 import RubricsModal from './RubricsModal';
 import '../styles/AnnotationInterface.css';
 
-function AnnotationInterface({ annotatorName, prolificId, cidNumber, onBack }) {
+function AnnotationInterface({ annotatorName, prolificId, cidNumber, onBack, onNavigate, canGoPrev, canGoNext }) {
   const [conversation, setConversation] = useState(null);
   const [annotations, setAnnotations] = useState([]);
   const [bloomScores, setBloomScores] = useState({
@@ -277,6 +277,32 @@ function AnnotationInterface({ annotatorName, prolificId, cidNumber, onBack }) {
       setSaving(false);
     }
   };
+  const handleNavigateWithSave = async (direction) => {
+    // Auto-save before navigating
+    if (annotatorName && prolificId) {
+      setSaving(true);
+      try {
+        await fetch('/api/save-annotation', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            annotatorName,
+            prolificId,
+            cidNumber,
+            annotations,
+            bloomScores,
+            comment
+          })
+        });
+      } catch (err) {
+        console.error('Error auto-saving before navigation:', err);
+      } finally {
+        setSaving(false);
+      }
+    }
+    onNavigate(direction);
+  };
+
 
   if (loading) {
     return <div className="loading-screen">Loading conversation...</div>;
@@ -290,8 +316,8 @@ function AnnotationInterface({ annotatorName, prolificId, cidNumber, onBack }) {
     <div className="annotation-interface">
       <header className="annotation-header">
         <div className="header-left">
-          <button className="btn-back" onClick={onBack}>
-            ← Back
+          <button className="btn-home" onClick={onBack} title="Back to home">
+            🏠 Home
           </button>
           <div className="header-info">
             <h1>Annotating: CID{cidNumber} - {prolificId}</h1>
@@ -301,6 +327,24 @@ function AnnotationInterface({ annotatorName, prolificId, cidNumber, onBack }) {
         </div>
         <div className="header-right">
           {saveMessage && <span className="save-message">{saveMessage}</span>}
+          <div className="nav-group">
+            <button
+              className="btn-nav btn-prev"
+              onClick={() => handleNavigateWithSave(-1)}
+              disabled={!canGoPrev || saving}
+              title="Previous user"
+            >
+              ◀ Prev
+            </button>
+            <button
+              className="btn-nav btn-next"
+              onClick={() => handleNavigateWithSave(1)}
+              disabled={!canGoNext || saving}
+              title="Next user"
+            >
+              Next ▶
+            </button>
+          </div>
           <button
             className="btn-save"
             onClick={handleSave}

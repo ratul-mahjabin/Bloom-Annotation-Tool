@@ -129,11 +129,6 @@
   transform: translateY(-3px);
 }
 
-.conversation-card.annotated {
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
-  border-color: #667eea;
-}
-
 .card-content h3 {
   font-size: 1.1em;
   margin-bottom: 8px;
@@ -152,17 +147,32 @@
 
 .card-status {
   font-size: 0.9em;
-  color: #999;
+  font-weight: 600;
   margin: 5px 0 0 0;
 }
 
-.card-status {
-  color: #667eea;
-  font-weight: 600;
+.card-status--not_started {
+  color: #999;
+  font-weight: 400;
 }
 
-.conversation-card.annotated .card-status {
+.card-status--in_progress {
+  color: #e6a817;
+  font-weight: 700;
+}
+
+.card-status--complete {
   color: #27ae60;
+}
+
+.conversation-card.annotated {
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
+  border-color: #667eea;
+}
+
+.conversation-card.in-progress {
+  background: linear-gradient(135deg, rgba(230, 168, 23, 0.06) 0%, rgba(230, 168, 23, 0.02) 100%);
+  border-color: #e6a817;
 }
 
 .card-arrow {
@@ -188,4 +198,158 @@
   font-size: 1.1em;
   color: #999;
   grid-column: 1 / -1;
+}
+
+/* ── Confused Cases Collapsible Panel ─────────────────────────── */
+.confused-panel {
+  background: #fffbf0;
+  border-bottom: 2px solid #f0c040;
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+
+.confused-panel-bar {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 30px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 0.92em;
+  font-weight: 600;
+  color: #a07800;
+  transition: background 0.2s;
+}
+
+.confused-panel-bar:hover {
+  background: rgba(240, 192, 64, 0.12);
+}
+
+.confused-panel-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.confused-panel-chevron {
+  font-size: 0.85em;
+  opacity: 0.7;
+}
+
+.confused-panel-body {
+  padding: 12px 30px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  max-height: 320px;
+  overflow-y: auto;
+  border-top: 1px solid #f0c040;
+}
+
+.confused-none {
+  color: #bbb;
+  font-size: 0.9em;
+  padding: 6px 0;
+}
+
+.confused-cid-group {
+  background: white;
+  border: 1px solid #f0c040;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.confused-cid-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 14px;
+  background: rgba(240, 192, 64, 0.12);
+  border-bottom: 1px solid #f0c04044;
+}
+
+.confused-cid-badge {
+  font-family: 'Courier New', monospace;
+  font-weight: 700;
+  font-size: 0.95em;
+  color: #764ba2;
+  background: rgba(118, 75, 162, 0.08);
+  padding: 2px 10px;
+  border-radius: 12px;
+}
+
+.confused-cid-link {
+  border: none;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s, transform 0.15s;
+  text-decoration: none;
+}
+
+.confused-cid-link:hover {
+  background: rgba(118, 75, 162, 0.2);
+  color: #5a2d8f;
+  transform: translateY(-1px);
+}
+
+.confused-cid-link:active {
+  transform: translateY(0);
+}
+
+.confused-cid-count {
+  font-size: 0.8em;
+  color: #a07800;
+}
+
+.confused-spans-list {
+  list-style: none;
+  margin: 0;
+  padding: 8px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.confused-span-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 0.85em;
+  line-height: 1.4;
+  flex-wrap: wrap;
+}
+
+.confused-span-role {
+  flex-shrink: 0;
+  font-size: 1em;
+}
+
+.confused-span-text {
+  flex: 1;
+  color: #444;
+  font-style: italic;
+  word-break: break-word;
+}
+
+.confused-span-labels {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+}
+
+.span-label-tag {
+  font-size: 0.78em;
+  padding: 1px 7px;
+  border-radius: 10px;
+  font-weight: 600;
+  background: rgba(102, 126, 234, 0.12);
+  color: #667eea;
+}
+
+.span-label-tag.confused {
+  background: rgba(255, 160, 0, 0.15);
+  color: #b07800;
 }

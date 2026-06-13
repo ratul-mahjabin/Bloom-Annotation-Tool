@@ -218,6 +218,79 @@ app.get('/api/annotation-exists/:annotatorName/:prolificId/:cidNumber', (req, re
   }
 });
 
+// Get annotation status: exists, complete (all bloomScores filled), and confused span count
+app.get('/api/annotation-status/:annotatorName/:prolificId/:cidNumber', (req, res) => {
+  try {
+    const { annotatorName, prolificId, cidNumber } = req.params;
+    const filename = `CID${cidNumber}_${annotatorName}.json`;
+    const filepath = path.join(__dirname, 'annotations', annotatorName, filename);
+
+    if (!fs.existsSync(filepath)) {
+      return res.json({ exists: false, complete: false, confusedCount: 0 });
+    }
+
+    const data = JSON.parse(fs.readFileSync(filepath, 'utf-8'));
+    const scores = data.bloomScores || {};
+    const bloomKeys = ['remember', 'understand', 'apply', 'analyze', 'evaluate', 'create'];
+    const complete = bloomKeys.every(k => scores[k] !== null && scores[k] !== undefined);
+    const confusedCount = (data.spanAnnotations || []).filter(a =>
+      Array.isArray(a.labels) && a.labels.includes('confused')
+    ).length;
+
+    res.json({ exists: true, complete, confusedCount });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Get all confused span cases for an annotator (across all CIDs)
+app.get('/api/confused-cases/:annotatorName', (req, res) => {
+  try {
+    const { annotatorName } = req.params;
+    const annotatorDir = path.join(__dirname, 'annotations', annotatorName);
+
+    if (!fs.existsSync(annotatorDir)) {
+      return res.json({ cases: [] });
+    }
+
+    const files = fs.readdirSync(annotatorDir).filter(f => f.endsWith('.json'));
+    const cases = [];
+
+    for (const file of files) {
+      try {
+        const data = JSON.parse(fs.readFileSync(path.join(annotatorDir, file), 'utf-8'));
+        // Extract CID number from filename (e.g. CID3_annotatorName.json -> 3)
+        const cidMatch = file.match(/^CID(\d+)_/);
+        const cidNumber = cidMatch ? parseInt(cidMatch[1]) : null;
+
+        const confusedSpans = (data.spanAnnotations || []).filter(a =>
+          Array.isArray(a.labels) && a.labels.includes('confused')
+        );
+
+        if (confusedSpans.length > 0) {
+          cases.push({
+            cidNumber,
+            prolificId: data.prolificId,
+            confusedSpans: confusedSpans.map(s => ({
+              text: s.extracted_text || s.text,
+              turnIndex: s.turn_index,
+              role: s.turn_role,
+              allLabels: s.labels
+            }))
+          });
+        }
+      } catch (e) {
+        // skip malformed files
+      }
+    }
+
+    cases.sort((a, b) => a.cidNumber - b.cidNumber);
+    res.json({ cases });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // Get all annotator names
 app.get('/api/annotators', (req, res) => {
   try {

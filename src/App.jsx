@@ -10,6 +10,8 @@ function App() {
   const [tempName, setTempName] = useState('');
   const [selectedConversation, setSelectedConversation] = useState(null);
   const [selectedCID, setSelectedCID] = useState(null);
+  const [selectedIndex, setSelectedIndex] = useState(null);
+  const [conversations, setConversations] = useState([]);
   const [showSelector, setShowSelector] = useState(true);
 
   useEffect(() => {
@@ -18,10 +20,24 @@ function App() {
     }
   }, [annotatorName]);
 
-  const handleConversationSelect = (prolificId, cidNumber) => {
+  const handleConversationSelect = (prolificId, cidNumber, allConversations, index) => {
     setSelectedConversation(prolificId);
     setSelectedCID(cidNumber);
+    if (allConversations) {
+      setConversations(allConversations);
+      setSelectedIndex(index);
+    }
     setShowSelector(false);
+  };
+
+  const handleNavigate = (direction) => {
+    const nextIndex = selectedIndex + direction;
+    if (nextIndex < 0 || nextIndex >= conversations.length) return;
+    const nextProlificId = conversations[nextIndex];
+    const nextCID = nextIndex + 1;
+    setSelectedConversation(nextProlificId);
+    setSelectedCID(nextCID);
+    setSelectedIndex(nextIndex);
   };
 
   const handleBackToSelector = () => {
@@ -82,6 +98,9 @@ function App() {
           prolificId={selectedConversation}
           cidNumber={selectedCID}
           onBack={handleBackToSelector}
+          onNavigate={handleNavigate}
+          canGoPrev={selectedIndex > 0}
+          canGoNext={selectedIndex < conversations.length - 1}
         />
       )}
     </div>
