@@ -6,24 +6,25 @@ import LikertPanel from './LikertPanel';
 import RubricsModal from './RubricsModal';
 import '../styles/AnnotationInterface.css';
 
+const createEmptyBloomScores = () => ({
+  remember: null,
+  understand: null,
+  apply: null,
+  analyze: null,
+  evaluate: null,
+  create: null
+});
+
 function AnnotationInterface({ annotatorName, prolificId, cidNumber, onBack, onNavigate, canGoPrev, canGoNext }) {
   const [conversation, setConversation] = useState(null);
   const [annotations, setAnnotations] = useState([]);
-  const [bloomScores, setBloomScores] = useState({
-    remember: null,
-    understand: null,
-    apply: null,
-    analyze: null,
-    evaluate: null,
-    create: null
-  });
+  const [bloomScores, setBloomScores] = useState(createEmptyBloomScores);
   const [comment, setComment] = useState('');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState('');
   const [selectedText, setSelectedText] = useState(null);
   const [selectedTurnIndex, setSelectedTurnIndex] = useState(null);
-  const [existingAnnotation, setExistingAnnotation] = useState(null);
   const [roleFilter, setRoleFilter] = useState({ ai: true, user: true });
   const [editingAnnotation, setEditingAnnotation] = useState(null);
   const [showLabelPopup, setShowLabelPopup] = useState(false);
@@ -44,52 +45,86 @@ function AnnotationInterface({ annotatorName, prolificId, cidNumber, onBack, onN
   };
 
   useEffect(() => {
-    fetchConversation();
-    loadExistingAnnotation();
-  }, [prolificId]);
+    const controller = new AbortController();
 
-  const fetchConversation = async () => {
-    try {
-      setLoading(true);
-      const response = await fetch(`/api/conversation/${prolificId}`);
-      const data = await response.json();
-      setConversation(data);
-    } catch (err) {
-      console.error('Error fetching conversation:', err);
-      alert('Error loading conversation');
-    } finally {
-      setLoading(false);
-    }
-  };
+    // Clear all CID-specific state before loading the next conversation.
+    setLoading(true);
+    setConversation(null);
+    setAnnotations([]);
+    setBloomScores(createEmptyBloomScores());
+    setComment('');
+    setSaveMessage('');
+    setSelectedText(null);
+    setSelectedTurnIndex(null);
+    setEditingAnnotation(null);
+    setShowLabelPopup(false);
+    setLabelPopupPosition(null);
+    setSelectedLabelsForPopup([]);
 
-  const loadExistingAnnotation = async () => {
-    try {
-      const response = await fetch(
-        `/api/load-annotation/${encodeURIComponent(annotatorName)}/${prolificId}/${cidNumber}`
-      );
-      if (response.ok) {
-        const data = await response.json();
-        setExistingAnnotation(data);
-        
-        // Normalize annotations: convert snake_case from server to camelCase for frontend
-        const normalizedAnnotations = (data.spanAnnotations || []).map(ann => ({
-          id: ann.id,
-          text: ann.extracted_text || ann.text,  // Fallback to old format if needed
-          extracted_text: ann.extracted_text,
-          labels: ann.labels,
-          turnIndex: ann.turn_index,
-          offsetInTurn: ann.start_char_in_turn,
-          timestamp: ann.timestamp
-        }));
-        
-        setAnnotations(normalizedAnnotations);
-        setBloomScores(data.bloomScores || bloomScores);
-        setComment(data.overallComment || '');
+    const loadConversation = async () => {
+      try {
+        const encodedProlificId = encodeURIComponent(prolificId);
+        const [conversationResponse, annotationResponse] = await Promise.all([
+          fetch(`/api/conversation/${encodedProlificId}`, { signal: controller.signal }),
+          fetch(
+            `/api/load-annotation/${encodeURIComponent(annotatorName)}/${encodedProlificId}/${cidNumber}`,
+            { signal: controller.signal }
+          )
+        ]);
+
+        if (!conversationResponse.ok) {
+          throw new Error(`Conversation request failed with status ${conversationResponse.status}`);
+        }
+
+        const conversationData = await conversationResponse.json();
+        let annotationData = null;
+
+        if (annotationResponse.ok) {
+          annotationData = await annotationResponse.json();
+        } else if (annotationResponse.status !== 404) {
+          throw new Error(`Annotation request failed with status ${annotationResponse.status}`);
+        }
+
+        if (controller.signal.aborted) return;
+
+        setConversation(conversationData);
+
+        if (annotationData) {
+          // Normalize both current and legacy annotation formats for the frontend.
+          const normalizedAnnotations = (annotationData.spanAnnotations || [])
+            .map(ann => ({
+              id: ann.id,
+              text: ann.extracted_text ?? ann.text,
+              extracted_text: ann.extracted_text,
+              labels: Array.isArray(ann.labels) ? ann.labels : [],
+              turnIndex: ann.turn_index ?? ann.turnIndex,
+              offsetInTurn: ann.start_char_in_turn ?? ann.offsetInTurn,
+              timestamp: ann.timestamp
+            }))
+            .filter(ann => typeof ann.text === 'string');
+
+          setAnnotations(normalizedAnnotations);
+          setBloomScores({
+            ...createEmptyBloomScores(),
+            ...(annotationData.bloomScores || {})
+          });
+          setComment(annotationData.overallComment || '');
+        }
+      } catch (err) {
+        if (err.name === 'AbortError') return;
+        console.error('Error loading conversation:', err);
+        alert('Error loading conversation');
+      } finally {
+        if (!controller.signal.aborted) {
+          setLoading(false);
+        }
       }
-    } catch (err) {
-      // No existing annotation, that's fine
-    }
-  };
+    };
+
+    loadConversation();
+
+    return () => controller.abort();
+  }, [annotatorName, prolificId, cidNumber]);
 
   const handleTextSelection = (selectedTurnIndex) => {
     const selection = window.getSelection();

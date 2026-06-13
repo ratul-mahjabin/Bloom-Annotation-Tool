@@ -1,5 +1,20 @@
 # Changelog
 
+## [2.0.1] — 2026-06-13
+
+### Bug Fixes
+- Fixed Save → Next navigation showing the previous conversation while only the CID changed.
+- Reset annotations, Bloom scores, comments, selections, and popups before loading another conversation, preventing annotated spans from carrying into an unannotated conversation.
+- Cancelled obsolete conversation requests so late responses cannot overwrite the currently selected CID.
+- Added server-side annotation validation to return a clear `400` error for invalid turn references instead of crashing with `Cannot read properties of undefined (reading 'text')`.
+
+**Files changed:**
+- `src/App.jsx`
+- `src/components/AnnotationInterface.jsx`
+- `server.js`
+
+---
+
 ## [2.0.0] — 2026-06-13
 
 ### Overview

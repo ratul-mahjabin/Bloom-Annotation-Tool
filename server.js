@@ -97,19 +97,61 @@ app.post('/api/save-annotation', (req, res) => {
       return res.status(400).json({ error: 'Missing annotatorName or prolificId' });
     }
     
-    // Create annotator directory if it doesn't exist
+    const conversation = conversations[prolificId];
+
+    if (!conversation) {
+      return res.status(404).json({ error: 'Conversation not found' });
+    }
+
+    if (!Array.isArray(annotations)) {
+      return res.status(400).json({ error: 'Annotations must be an array' });
+    }
+
+    for (let index = 0; index < annotations.length; index++) {
+      const annotation = annotations[index];
+      const annotationText = annotation?.text ?? annotation?.extracted_text;
+      const turnIndex = annotation?.turnIndex ?? annotation?.turn_index;
+      const offsetInTurn = annotation?.offsetInTurn ?? annotation?.start_char_in_turn;
+      const turn = conversation.turns.find(t => t.turn_index === turnIndex);
+
+      if (!turn) {
+        return res.status(400).json({
+          error: `Annotation ${index + 1} references a turn that is not in this conversation`
+        });
+      }
+
+      if (
+        typeof annotationText !== 'string' ||
+        !Number.isInteger(offsetInTurn) ||
+        !Array.isArray(annotation?.labels)
+      ) {
+        return res.status(400).json({
+          error: `Annotation ${index + 1} has invalid text, labels, or offset data`
+        });
+      }
+
+      if (offsetInTurn < 0 || offsetInTurn + annotationText.length > turn.text.length) {
+        return res.status(400).json({
+          error: `Annotation ${index + 1} falls outside its referenced turn`
+        });
+      }
+    }
+
+    // Create annotator directory after the request has passed validation.
     const annotatorDir = path.join(__dirname, 'annotations', annotatorName);
     if (!fs.existsSync(annotatorDir)) {
       fs.mkdirSync(annotatorDir, { recursive: true });
     }
     
-    const conversation = conversations[prolificId];
-    
     // Enhance annotations with turn-based structure (simpler and more robust)
     const enhancedAnnotations = annotations.map(ann => {
+      const annotationText = ann.text ?? ann.extracted_text;
+      const turnIndex = ann.turnIndex ?? ann.turn_index;
+      const offsetInTurn = ann.offsetInTurn ?? ann.start_char_in_turn;
+
       // Find the turn with this annotation
-      const turnWithAnnotation = conversation.turns.find(t => t.turn_index === ann.turnIndex);
-      const turnIdx = conversation.turns.findIndex(t => t.turn_index === ann.turnIndex);
+      const turnWithAnnotation = conversation.turns.find(t => t.turn_index === turnIndex);
+      const turnIdx = conversation.turns.findIndex(t => t.turn_index === turnIndex);
       
       // Get context turns
       const beforeTurn = turnIdx > 0 ? conversation.turns[turnIdx - 1] : null;
@@ -117,8 +159,8 @@ app.post('/api/save-annotation', (req, res) => {
       
       // Extract exact text from turn to validate
       const extractedText = turnWithAnnotation.text.substring(
-        ann.offsetInTurn,
-        ann.offsetInTurn + ann.text.length
+        offsetInTurn,
+        offsetInTurn + annotationText.length
       );
       
       return {
@@ -127,12 +169,12 @@ app.post('/api/save-annotation', (req, res) => {
         labels: ann.labels,
         
         // Turn-based location (PRIMARY - most important)
-        turn_index: ann.turnIndex,
-        start_char_in_turn: ann.offsetInTurn,
-        end_char_in_turn: ann.offsetInTurn + ann.text.length,
+        turn_index: turnIndex,
+        start_char_in_turn: offsetInTurn,
+        end_char_in_turn: offsetInTurn + annotationText.length,
         
         // Validation
-        text_matches: extractedText === ann.text,
+        text_matches: extractedText === annotationText,
         
         // Context for ML
         context: {

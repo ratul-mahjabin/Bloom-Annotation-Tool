@@ -94,6 +94,7 @@ function App() {
         />
       ) : (
         <AnnotationInterface
+          key={`${selectedCID}:${selectedConversation}`}
           annotatorName={annotatorName}
           prolificId={selectedConversation}
           cidNumber={selectedCID}
