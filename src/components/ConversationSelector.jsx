@@ -110,7 +110,7 @@ function ConversationSelector({ annotatorName, onSelectConversation, onChangeNam
                     prolificId={prolificId}
                     cidNumber={actualIndex}
                     annotatorName={annotatorName}
-                    onSelect={() => onSelectConversation(prolificId, actualIndex)}
+                    onSelect={() => onSelectConversation(prolificId, actualIndex, conversations, actualIndex - 1)}
                   />
                 );
               })
