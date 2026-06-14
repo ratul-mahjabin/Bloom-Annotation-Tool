@@ -1,5 +1,23 @@
 # Changelog
 
+## [2.0.2] — 2026-06-14
+
+### Bug Fixes
+- Fixed annotation saves failing with `Annotation 1 falls outside its referenced turn` when selected text contained repeated words or browser-rendered whitespace.
+- Calculate span offsets directly from the browser selection range and extract the annotation text from the canonical conversation turn, ensuring saved text and offsets remain aligned.
+- Added server-side verification that annotation text exactly matches the referenced section of the turn.
+- Improved text selection so dragging remains valid when the mouse is released outside the message bubble.
+- Prevented existing highlighted spans from opening edit mode while the user is selecting text.
+- Kept the label-selection popup inside the visible viewport, including near the right and bottom edges of the screen.
+
+**Files changed:**
+- `src/components/AnnotationInterface.jsx`
+- `src/components/ChatDisplay.jsx`
+- `src/styles/LabelPopup.css`
+- `server.js`
+
+---
+
 ## [2.0.1] — 2026-06-13
 
 ### Bug Fixes

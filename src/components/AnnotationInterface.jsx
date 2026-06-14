@@ -15,6 +15,27 @@ const createEmptyBloomScores = () => ({
   create: null
 });
 
+const getLabelPopupPosition = (rect) => {
+  const margin = 12;
+  const gap = 12;
+  const popupWidth = Math.min(350, window.innerWidth - (margin * 2));
+  const popupHeight = Math.min(480, window.innerHeight - (margin * 2));
+
+  let left = rect.right + gap;
+  if (left + popupWidth > window.innerWidth - margin) {
+    left = rect.left - popupWidth - gap;
+  }
+
+  return {
+    top: Math.min(
+      Math.max(margin, rect.top + (rect.height / 2) - (popupHeight / 2)),
+      window.innerHeight - popupHeight - margin
+    ),
+    left: Math.max(margin, left),
+    isFixed: true
+  };
+};
+
 function AnnotationInterface({ annotatorName, prolificId, cidNumber, onBack, onNavigate, canGoPrev, canGoNext }) {
   const [conversation, setConversation] = useState(null);
   const [annotations, setAnnotations] = useState([]);
@@ -126,35 +147,63 @@ function AnnotationInterface({ annotatorName, prolificId, cidNumber, onBack, onN
     return () => controller.abort();
   }, [annotatorName, prolificId, cidNumber]);
 
-  const handleTextSelection = (selectedTurnIndex) => {
+  const handleTextSelection = (selectedTurnIndex, turnElement) => {
     const selection = window.getSelection();
-    if (selection.toString().length === 0) {
+    if (!selection || selection.rangeCount === 0 || selection.isCollapsed) {
       setSelectedText(null);
       setShowLabelPopup(false);
       return;
     }
 
     const range = selection.getRangeAt(0);
+    if (
+      !turnElement.contains(range.startContainer) ||
+      !turnElement.contains(range.endContainer)
+    ) {
+      setSelectedText(null);
+      setShowLabelPopup(false);
+      return;
+    }
+
+    const targetTurn = conversation.turns.find(turn => turn.turn_index === selectedTurnIndex);
+    if (!targetTurn) {
+      console.error('Target turn not found');
+      return;
+    }
+
+    // Convert the DOM range into offsets relative to this message. Unlike
+    // searching by text, this is accurate when words repeat or whitespace varies.
+    const rangeToStart = range.cloneRange();
+    rangeToStart.selectNodeContents(turnElement);
+    rangeToStart.setEnd(range.startContainer, range.startOffset);
+
+    const rangeToEnd = range.cloneRange();
+    rangeToEnd.selectNodeContents(turnElement);
+    rangeToEnd.setEnd(range.endContainer, range.endOffset);
+
+    const offsetInTurn = rangeToStart.toString().length;
+    const endOffsetInTurn = rangeToEnd.toString().length;
+
+    if (
+      offsetInTurn < 0 ||
+      endOffsetInTurn <= offsetInTurn ||
+      endOffsetInTurn > targetTurn.text.length
+    ) {
+      console.error('Selected text falls outside the target turn');
+      return;
+    }
+
     const rect = range.getBoundingClientRect();
 
     setSelectedText({
-      text: selection.toString(),
-      range,
-      position: { top: rect.top, left: rect.left }
+      text: targetTurn.text.substring(offsetInTurn, endOffsetInTurn),
+      offsetInTurn
     });
     
     // Store which turn was selected so we can use it later
     setSelectedTurnIndex(selectedTurnIndex);
 
-    // Show popup on the right side of the selection, at the vertical center
-    const popupTop = window.scrollY + rect.top + (rect.height / 2) - 150; // Center popup vertically around selection
-    const popupLeft = window.scrollX + rect.right + 15; // 15px to the right of selection
-
-    setLabelPopupPosition({
-      top: popupTop,
-      left: popupLeft,
-      isFixed: false
-    });
+    setLabelPopupPosition(getLabelPopupPosition(rect));
     setShowLabelPopup(true);
     setSelectedLabelsForPopup([]);
     setEditingAnnotation(null);
@@ -182,42 +231,12 @@ function AnnotationInterface({ annotatorName, prolificId, cidNumber, onBack, onN
       // Add new annotation
       const text = selectedText.text;
 
-      // Find the specific turn that was selected
-      const targetTurn = conversation.turns.find(turn => turn.turn_index === selectedTurnIndex);
-      
-      if (!targetTurn) {
-        console.error('Target turn not found');
-        return;
-      }
-
-      const turnText = targetTurn.text;
-      
-      // Try to find the text in this specific turn
-      let offsetInTurn = turnText.indexOf(text);
-      
-      // If not found exactly, try without extra whitespace
-      if (offsetInTurn === -1) {
-        const compactText = text.replace(/\s+/g, ' ').trim();
-        const compactTurnText = turnText.replace(/\s+/g, ' ').trim();
-        
-        if (compactTurnText.includes(compactText)) {
-          const words = compactText.split(' ');
-          const firstWord = words[0];
-          offsetInTurn = turnText.indexOf(firstWord);
-        }
-      }
-      
-      if (offsetInTurn === -1) {
-        console.error('Could not find selected text in target turn');
-        return;
-      }
-
       const newAnnotation = {
         id: Date.now(),
         text: text,
         labels: labels,
         turnIndex: selectedTurnIndex,  // Use the selected turn index
-        offsetInTurn,
+        offsetInTurn: selectedText.offsetInTurn,
         timestamp: new Date().toISOString()
       };
 
@@ -256,16 +275,8 @@ function AnnotationInterface({ annotatorName, prolificId, cidNumber, onBack, onN
             elem.style.outline = 'none';
           }, 2000);
 
-          // Show label popup on the right side of the annotation text
           const rect = elem.getBoundingClientRect();
-          const popupTop = window.scrollY + rect.top + (rect.height / 2) - 150;
-          const popupLeft = window.scrollX + rect.right + 15;
-
-          setLabelPopupPosition({
-            top: popupTop,
-            left: popupLeft,
-            isFixed: false
-          });
+          setLabelPopupPosition(getLabelPopupPosition(rect));
           break;
         }
       }

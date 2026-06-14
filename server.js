@@ -135,6 +135,12 @@ app.post('/api/save-annotation', (req, res) => {
           error: `Annotation ${index + 1} falls outside its referenced turn`
         });
       }
+
+      if (turn.text.substring(offsetInTurn, offsetInTurn + annotationText.length) !== annotationText) {
+        return res.status(400).json({
+          error: `Annotation ${index + 1} text does not match its referenced turn`
+        });
+      }
     }
 
     // Create annotator directory after the request has passed validation.
