@@ -260,6 +260,7 @@
   border: 1px solid #f0c040;
   border-radius: 8px;
   overflow: hidden;
+  flex: 0 0 auto;
 }
 
 .confused-cid-header {
@@ -319,6 +320,11 @@
   font-size: 0.85em;
   line-height: 1.4;
   flex-wrap: wrap;
+}
+
+.confused-span-item + .confused-span-item {
+  border-top: 1px solid #f0c04033;
+  padding-top: 8px;
 }
 
 .confused-span-role {

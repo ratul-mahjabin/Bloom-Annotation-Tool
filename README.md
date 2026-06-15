@@ -25,6 +25,8 @@ The **Bloom Annotation Tool** is an interactive interface designed to support th
 - A collapsible amber panel pinned below the home page header.
 - Summarises all text spans labeled **"confused"** across every saved annotation, grouped by CID.
 - Each CID badge is **clickable** and navigates directly to that annotation page.
+- When expanded, the panel has its own vertical scroll area so a large number of cases does not push the conversation browser off-screen.
+- Every confused span is shown within its CID card. CIDs with multiple spans expand to their full content height, with separators between spans, and can be reviewed by scrolling the panel.
 
 ### 🔀 In-Annotation Navigation
 - **`◀ Prev`** and **`Next ▶`** buttons in the annotation banner let annotators jump between users without returning to the home page.

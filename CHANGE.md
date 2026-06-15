@@ -9,11 +9,14 @@
 - Improved text selection so dragging remains valid when the mouse is released outside the message bubble.
 - Prevented existing highlighted spans from opening edit mode while the user is selecting text.
 - Kept the label-selection popup inside the visible viewport, including near the right and bottom edges of the screen.
+- Fixed CID cards in the home-page Confused Cases panel shrinking and clipping content when a CID contained multiple confused spans.
+- Added clear separators between multiple confused spans and preserved each CID card's full height inside the scrollable panel.
 
 **Files changed:**
 - `src/components/AnnotationInterface.jsx`
 - `src/components/ChatDisplay.jsx`
 - `src/styles/LabelPopup.css`
+- `src/styles/ConversationSelector.css`
 - `server.js`
 
 ---
