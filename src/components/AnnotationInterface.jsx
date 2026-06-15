@@ -6,24 +6,46 @@ import LikertPanel from './LikertPanel';
 import RubricsModal from './RubricsModal';
 import '../styles/AnnotationInterface.css';
 
+const createEmptyBloomScores = () => ({
+  remember: null,
+  understand: null,
+  apply: null,
+  analyze: null,
+  evaluate: null,
+  create: null
+});
+
+const getLabelPopupPosition = (rect) => {
+  const margin = 12;
+  const gap = 12;
+  const popupWidth = Math.min(350, window.innerWidth - (margin * 2));
+  const popupHeight = Math.min(480, window.innerHeight - (margin * 2));
+
+  let left = rect.right + gap;
+  if (left + popupWidth > window.innerWidth - margin) {
+    left = rect.left - popupWidth - gap;
+  }
+
+  return {
+    top: Math.min(
+      Math.max(margin, rect.top + (rect.height / 2) - (popupHeight / 2)),
+      window.innerHeight - popupHeight - margin
+    ),
+    left: Math.max(margin, left),
+    isFixed: true
+  };
+};
+
 function AnnotationInterface({ annotatorName, prolificId, cidNumber, onBack, onNavigate, canGoPrev, canGoNext }) {
   const [conversation, setConversation] = useState(null);
   const [annotations, setAnnotations] = useState([]);
-  const [bloomScores, setBloomScores] = useState({
-    remember: null,
-    understand: null,
-    apply: null,
-    analyze: null,
-    evaluate: null,
-    create: null
-  });
+  const [bloomScores, setBloomScores] = useState(createEmptyBloomScores);
   const [comment, setComment] = useState('');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState('');
   const [selectedText, setSelectedText] = useState(null);
   const [selectedTurnIndex, setSelectedTurnIndex] = useState(null);
-  const [existingAnnotation, setExistingAnnotation] = useState(null);
   const [roleFilter, setRoleFilter] = useState({ ai: true, user: true });
   const [editingAnnotation, setEditingAnnotation] = useState(null);
   const [showLabelPopup, setShowLabelPopup] = useState(false);
@@ -44,82 +66,144 @@ function AnnotationInterface({ annotatorName, prolificId, cidNumber, onBack, onN
   };
 
   useEffect(() => {
-    fetchConversation();
-    loadExistingAnnotation();
-  }, [prolificId]);
+    const controller = new AbortController();
 
-  const fetchConversation = async () => {
-    try {
-      setLoading(true);
-      const response = await fetch(`/api/conversation/${prolificId}`);
-      const data = await response.json();
-      setConversation(data);
-    } catch (err) {
-      console.error('Error fetching conversation:', err);
-      alert('Error loading conversation');
-    } finally {
-      setLoading(false);
-    }
-  };
+    // Clear all CID-specific state before loading the next conversation.
+    setLoading(true);
+    setConversation(null);
+    setAnnotations([]);
+    setBloomScores(createEmptyBloomScores());
+    setComment('');
+    setSaveMessage('');
+    setSelectedText(null);
+    setSelectedTurnIndex(null);
+    setEditingAnnotation(null);
+    setShowLabelPopup(false);
+    setLabelPopupPosition(null);
+    setSelectedLabelsForPopup([]);
 
-  const loadExistingAnnotation = async () => {
-    try {
-      const response = await fetch(
-        `/api/load-annotation/${encodeURIComponent(annotatorName)}/${prolificId}/${cidNumber}`
-      );
-      if (response.ok) {
-        const data = await response.json();
-        setExistingAnnotation(data);
-        
-        // Normalize annotations: convert snake_case from server to camelCase for frontend
-        const normalizedAnnotations = (data.spanAnnotations || []).map(ann => ({
-          id: ann.id,
-          text: ann.extracted_text || ann.text,  // Fallback to old format if needed
-          extracted_text: ann.extracted_text,
-          labels: ann.labels,
-          turnIndex: ann.turn_index,
-          offsetInTurn: ann.start_char_in_turn,
-          timestamp: ann.timestamp
-        }));
-        
-        setAnnotations(normalizedAnnotations);
-        setBloomScores(data.bloomScores || bloomScores);
-        setComment(data.overallComment || '');
+    const loadConversation = async () => {
+      try {
+        const encodedProlificId = encodeURIComponent(prolificId);
+        const [conversationResponse, annotationResponse] = await Promise.all([
+          fetch(`/api/conversation/${encodedProlificId}`, { signal: controller.signal }),
+          fetch(
+            `/api/load-annotation/${encodeURIComponent(annotatorName)}/${encodedProlificId}/${cidNumber}`,
+            { signal: controller.signal }
+          )
+        ]);
+
+        if (!conversationResponse.ok) {
+          throw new Error(`Conversation request failed with status ${conversationResponse.status}`);
+        }
+
+        const conversationData = await conversationResponse.json();
+        let annotationData = null;
+
+        if (annotationResponse.ok) {
+          annotationData = await annotationResponse.json();
+        } else if (annotationResponse.status !== 404) {
+          throw new Error(`Annotation request failed with status ${annotationResponse.status}`);
+        }
+
+        if (controller.signal.aborted) return;
+
+        setConversation(conversationData);
+
+        if (annotationData) {
+          // Normalize both current and legacy annotation formats for the frontend.
+          const normalizedAnnotations = (annotationData.spanAnnotations || [])
+            .map(ann => ({
+              id: ann.id,
+              text: ann.extracted_text ?? ann.text,
+              extracted_text: ann.extracted_text,
+              labels: Array.isArray(ann.labels) ? ann.labels : [],
+              turnIndex: ann.turn_index ?? ann.turnIndex,
+              offsetInTurn: ann.start_char_in_turn ?? ann.offsetInTurn,
+              timestamp: ann.timestamp
+            }))
+            .filter(ann => typeof ann.text === 'string');
+
+          setAnnotations(normalizedAnnotations);
+          setBloomScores({
+            ...createEmptyBloomScores(),
+            ...(annotationData.bloomScores || {})
+          });
+          setComment(annotationData.overallComment || '');
+        }
+      } catch (err) {
+        if (err.name === 'AbortError') return;
+        console.error('Error loading conversation:', err);
+        alert('Error loading conversation');
+      } finally {
+        if (!controller.signal.aborted) {
+          setLoading(false);
+        }
       }
-    } catch (err) {
-      // No existing annotation, that's fine
-    }
-  };
+    };
 
-  const handleTextSelection = (selectedTurnIndex) => {
+    loadConversation();
+
+    return () => controller.abort();
+  }, [annotatorName, prolificId, cidNumber]);
+
+  const handleTextSelection = (selectedTurnIndex, turnElement) => {
     const selection = window.getSelection();
-    if (selection.toString().length === 0) {
+    if (!selection || selection.rangeCount === 0 || selection.isCollapsed) {
       setSelectedText(null);
       setShowLabelPopup(false);
       return;
     }
 
     const range = selection.getRangeAt(0);
+    if (
+      !turnElement.contains(range.startContainer) ||
+      !turnElement.contains(range.endContainer)
+    ) {
+      setSelectedText(null);
+      setShowLabelPopup(false);
+      return;
+    }
+
+    const targetTurn = conversation.turns.find(turn => turn.turn_index === selectedTurnIndex);
+    if (!targetTurn) {
+      console.error('Target turn not found');
+      return;
+    }
+
+    // Convert the DOM range into offsets relative to this message. Unlike
+    // searching by text, this is accurate when words repeat or whitespace varies.
+    const rangeToStart = range.cloneRange();
+    rangeToStart.selectNodeContents(turnElement);
+    rangeToStart.setEnd(range.startContainer, range.startOffset);
+
+    const rangeToEnd = range.cloneRange();
+    rangeToEnd.selectNodeContents(turnElement);
+    rangeToEnd.setEnd(range.endContainer, range.endOffset);
+
+    const offsetInTurn = rangeToStart.toString().length;
+    const endOffsetInTurn = rangeToEnd.toString().length;
+
+    if (
+      offsetInTurn < 0 ||
+      endOffsetInTurn <= offsetInTurn ||
+      endOffsetInTurn > targetTurn.text.length
+    ) {
+      console.error('Selected text falls outside the target turn');
+      return;
+    }
+
     const rect = range.getBoundingClientRect();
 
     setSelectedText({
-      text: selection.toString(),
-      range,
-      position: { top: rect.top, left: rect.left }
+      text: targetTurn.text.substring(offsetInTurn, endOffsetInTurn),
+      offsetInTurn
     });
     
     // Store which turn was selected so we can use it later
     setSelectedTurnIndex(selectedTurnIndex);
 
-    // Show popup on the right side of the selection, at the vertical center
-    const popupTop = window.scrollY + rect.top + (rect.height / 2) - 150; // Center popup vertically around selection
-    const popupLeft = window.scrollX + rect.right + 15; // 15px to the right of selection
-
-    setLabelPopupPosition({
-      top: popupTop,
-      left: popupLeft,
-      isFixed: false
-    });
+    setLabelPopupPosition(getLabelPopupPosition(rect));
     setShowLabelPopup(true);
     setSelectedLabelsForPopup([]);
     setEditingAnnotation(null);
@@ -147,42 +231,12 @@ function AnnotationInterface({ annotatorName, prolificId, cidNumber, onBack, onN
       // Add new annotation
       const text = selectedText.text;
 
-      // Find the specific turn that was selected
-      const targetTurn = conversation.turns.find(turn => turn.turn_index === selectedTurnIndex);
-      
-      if (!targetTurn) {
-        console.error('Target turn not found');
-        return;
-      }
-
-      const turnText = targetTurn.text;
-      
-      // Try to find the text in this specific turn
-      let offsetInTurn = turnText.indexOf(text);
-      
-      // If not found exactly, try without extra whitespace
-      if (offsetInTurn === -1) {
-        const compactText = text.replace(/\s+/g, ' ').trim();
-        const compactTurnText = turnText.replace(/\s+/g, ' ').trim();
-        
-        if (compactTurnText.includes(compactText)) {
-          const words = compactText.split(' ');
-          const firstWord = words[0];
-          offsetInTurn = turnText.indexOf(firstWord);
-        }
-      }
-      
-      if (offsetInTurn === -1) {
-        console.error('Could not find selected text in target turn');
-        return;
-      }
-
       const newAnnotation = {
         id: Date.now(),
         text: text,
         labels: labels,
         turnIndex: selectedTurnIndex,  // Use the selected turn index
-        offsetInTurn,
+        offsetInTurn: selectedText.offsetInTurn,
         timestamp: new Date().toISOString()
       };
 
@@ -221,16 +275,8 @@ function AnnotationInterface({ annotatorName, prolificId, cidNumber, onBack, onN
             elem.style.outline = 'none';
           }, 2000);
 
-          // Show label popup on the right side of the annotation text
           const rect = elem.getBoundingClientRect();
-          const popupTop = window.scrollY + rect.top + (rect.height / 2) - 150;
-          const popupLeft = window.scrollX + rect.right + 15;
-
-          setLabelPopupPosition({
-            top: popupTop,
-            left: popupLeft,
-            isFixed: false
-          });
+          setLabelPopupPosition(getLabelPopupPosition(rect));
           break;
         }
       }

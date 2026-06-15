@@ -1,4 +1,4 @@
-import React, { forwardRef } from 'react';
+import React, { forwardRef, useEffect, useRef } from 'react';
 import '../styles/ChatDisplay.css';
 
 const ChatDisplay = forwardRef(({
@@ -10,6 +10,21 @@ const ChatDisplay = forwardRef(({
   roleFilter,
   onAnnotationClick
 }, ref) => {
+  const activeSelectionRef = useRef(null);
+
+  useEffect(() => {
+    const handleDocumentMouseUp = () => {
+      const activeSelection = activeSelectionRef.current;
+      activeSelectionRef.current = null;
+
+      if (activeSelection) {
+        onTextSelect(activeSelection.turnIndex, activeSelection.element);
+      }
+    };
+
+    document.addEventListener('mouseup', handleDocumentMouseUp);
+    return () => document.removeEventListener('mouseup', handleDocumentMouseUp);
+  }, [onTextSelect]);
 
   const bloomColors = {
     remember: '#FFB3BA',      // Bright coral red
@@ -38,7 +53,12 @@ const ChatDisplay = forwardRef(({
         </div>
         <div
           className={`message-text ${selectableClass}`}
-          onMouseUp={isRoleEnabled ? () => onTextSelect(turn.turn_index) : null}
+          onMouseDown={isRoleEnabled ? (event) => {
+            activeSelectionRef.current = {
+              turnIndex: turn.turn_index,
+              element: event.currentTarget
+            };
+          } : null}
         >
           {renderHighlightedText(turn.text, turn.turn_index)}
         </div>
@@ -149,6 +169,9 @@ const ChatDisplay = forwardRef(({
             data-label={primaryLabel}
             onClick={(e) => {
               e.stopPropagation();
+              const selection = window.getSelection();
+              if (selection && !selection.isCollapsed) return;
+
               if (onAnnotationClick) {
                 onAnnotationClick(segment.annotation);
               }

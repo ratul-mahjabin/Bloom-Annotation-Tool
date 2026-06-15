@@ -1,5 +1,41 @@
 # Changelog
 
+## [2.0.2] — 2026-06-14
+
+### Bug Fixes
+- Fixed annotation saves failing with `Annotation 1 falls outside its referenced turn` when selected text contained repeated words or browser-rendered whitespace.
+- Calculate span offsets directly from the browser selection range and extract the annotation text from the canonical conversation turn, ensuring saved text and offsets remain aligned.
+- Added server-side verification that annotation text exactly matches the referenced section of the turn.
+- Improved text selection so dragging remains valid when the mouse is released outside the message bubble.
+- Prevented existing highlighted spans from opening edit mode while the user is selecting text.
+- Kept the label-selection popup inside the visible viewport, including near the right and bottom edges of the screen.
+- Fixed CID cards in the home-page Confused Cases panel shrinking and clipping content when a CID contained multiple confused spans.
+- Added clear separators between multiple confused spans and preserved each CID card's full height inside the scrollable panel.
+
+**Files changed:**
+- `src/components/AnnotationInterface.jsx`
+- `src/components/ChatDisplay.jsx`
+- `src/styles/LabelPopup.css`
+- `src/styles/ConversationSelector.css`
+- `server.js`
+
+---
+
+## [2.0.1] — 2026-06-13
+
+### Bug Fixes
+- Fixed Save → Next navigation showing the previous conversation while only the CID changed.
+- Reset annotations, Bloom scores, comments, selections, and popups before loading another conversation, preventing annotated spans from carrying into an unannotated conversation.
+- Cancelled obsolete conversation requests so late responses cannot overwrite the currently selected CID.
+- Added server-side annotation validation to return a clear `400` error for invalid turn references instead of crashing with `Cannot read properties of undefined (reading 'text')`.
+
+**Files changed:**
+- `src/App.jsx`
+- `src/components/AnnotationInterface.jsx`
+- `server.js`
+
+---
+
 ## [2.0.0] — 2026-06-13
 
 ### Overview
