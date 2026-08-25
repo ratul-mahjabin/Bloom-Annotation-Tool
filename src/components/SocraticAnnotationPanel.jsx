@@ -12,12 +12,14 @@ function SocraticAnnotationPanel({
   editingAnnotation,
   minSelectableTurnIndex
 }) {
+  const sortedAnnotations = [...annotations].sort((a, b) => a.turnIndex - b.turnIndex);
+
   return (
     <div className="annotation-panel">
       <div className="panel-section">
         <h3>💬 Annotating AI Turns</h3>
         <p className="empty-list" style={{ marginBottom: 0 }}>
-          Only AI turns from turn {minSelectableTurnIndex} onward can be highlighted.
+          Click the ✎ icon on an AI turn (from turn {minSelectableTurnIndex} onward) to label it.
         </p>
       </div>
 
@@ -26,16 +28,13 @@ function SocraticAnnotationPanel({
         <div className="annotations-list">
           {annotations.length === 0 ? (
             <p className="empty-list">
-              👆 Highlight text in an AI turn to annotate
+              👆 Click the ✎ icon on an AI turn to annotate it
             </p>
           ) : (
-            annotations.map((ann) => (
+            sortedAnnotations.map((ann) => (
               <div key={ann.id} className={`annotation-item ${editingAnnotation?.id === ann.id ? 'editing' : ''}`}>
                 <div className="annotation-text">
-                  <p className="annotation-quoted">
-                    "{(ann.extracted_text || ann.text).substring(0, 60)}
-                    {(ann.extracted_text || ann.text).length > 60 ? '...' : ''}"
-                  </p>
+                  <p className="annotation-quoted">Turn {ann.turnIndex}</p>
                   <div className="annotation-labels">
                     <span
                       className="level-badge socratic-level-badge"
@@ -49,7 +48,7 @@ function SocraticAnnotationPanel({
                   <button
                     className="btn-edit"
                     onClick={() => onEditAnnotation(ann)}
-                    title="Click to edit label or scroll to location"
+                    title="Click to change label or scroll to location"
                   >
                     ✎
                   </button>

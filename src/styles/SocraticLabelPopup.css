@@ -1,6 +1,7 @@
 .socratic-label-popup {
   width: 640px;
   max-width: calc(100vw - 24px);
+  max-height: min(600px, calc(100vh - 24px));
 }
 
 .socratic-popup-header {
@@ -36,7 +37,9 @@
 }
 
 .socratic-selector-popup {
-  max-height: 460px;
+  flex: 1;
+  max-height: none;
+  min-height: 0;
 }
 
 .socratic-option-popup {

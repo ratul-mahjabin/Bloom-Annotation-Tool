@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import SocraticChatDisplay from './SocraticChatDisplay';
 import SocraticAnnotationPanel from './SocraticAnnotationPanel';
 import SocraticLabelPopup from './SocraticLabelPopup';
+import { getLastParagraphRange } from '../utils/lastParagraph';
 import '../styles/AnnotationInterface.css';
 
 const MIN_SELECTABLE_TURN_INDEX = 3;
@@ -62,7 +63,7 @@ const getLabelPopupPosition = (rect) => {
   const margin = 12;
   const gap = 12;
   const popupWidth = Math.min(640, window.innerWidth - (margin * 2));
-  const popupHeight = Math.min(480, window.innerHeight - (margin * 2));
+  const popupHeight = Math.min(600, window.innerHeight - (margin * 2));
 
   let left = rect.right + gap;
   if (left + popupWidth > window.innerWidth - margin) {
@@ -90,8 +91,7 @@ function SocraticAnnotationInterface({ annotatorName, prolificId, cidNumber, onB
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState('');
-  const [selectedText, setSelectedText] = useState(null);
-  const [selectedTurnIndex, setSelectedTurnIndex] = useState(null);
+  const [activeTurn, setActiveTurn] = useState(null);
   const [editingAnnotation, setEditingAnnotation] = useState(null);
   const [showLabelPopup, setShowLabelPopup] = useState(false);
   const [labelPopupPosition, setLabelPopupPosition] = useState(null);
@@ -105,8 +105,7 @@ function SocraticAnnotationInterface({ annotatorName, prolificId, cidNumber, onB
     setConversation(null);
     setAnnotations([]);
     setSaveMessage('');
-    setSelectedText(null);
-    setSelectedTurnIndex(null);
+    setActiveTurn(null);
     setEditingAnnotation(null);
     setShowLabelPopup(false);
     setLabelPopupPosition(null);
@@ -144,14 +143,11 @@ function SocraticAnnotationInterface({ annotatorName, prolificId, cidNumber, onB
           const normalizedAnnotations = (annotationData.spanAnnotations || [])
             .map(ann => ({
               id: ann.id,
-              text: ann.extracted_text ?? ann.text,
-              extracted_text: ann.extracted_text,
               label: ann.label,
               turnIndex: ann.turn_index ?? ann.turnIndex,
-              offsetInTurn: ann.start_char_in_turn ?? ann.offsetInTurn,
               timestamp: ann.timestamp
             }))
-            .filter(ann => typeof ann.text === 'string' && ann.label);
+            .filter(ann => typeof ann.turnIndex === 'number' && ann.label);
 
           setAnnotations(normalizedAnnotations);
         }
@@ -171,106 +167,45 @@ function SocraticAnnotationInterface({ annotatorName, prolificId, cidNumber, onB
     return () => controller.abort();
   }, [annotatorName, prolificId, cidNumber]);
 
-  const handleTextSelection = (selectedTurnIndex, turnElement) => {
-    const selection = window.getSelection();
-    if (!selection || selection.rangeCount === 0 || selection.isCollapsed) {
-      setSelectedText(null);
-      setShowLabelPopup(false);
+  const handleAnnotateTurn = (turn, buttonElement) => {
+    if (turn.role !== 'assistant' || turn.turn_index < MIN_SELECTABLE_TURN_INDEX) {
       return;
     }
 
-    const range = selection.getRangeAt(0);
-    if (
-      !turnElement.contains(range.startContainer) ||
-      !turnElement.contains(range.endContainer)
-    ) {
-      setSelectedText(null);
-      setShowLabelPopup(false);
-      return;
-    }
+    const existingAnnotation = annotations.find(a => a.turnIndex === turn.turn_index) || null;
 
-    const targetTurn = conversation.turns.find(turn => turn.turn_index === selectedTurnIndex);
-    if (!targetTurn) {
-      console.error('Target turn not found');
-      return;
-    }
+    setActiveTurn(turn);
+    setEditingAnnotation(existingAnnotation);
+    setSelectedLabelForPopup(existingAnnotation ? existingAnnotation.label : null);
 
-    if (targetTurn.role !== 'assistant' || targetTurn.turn_index < MIN_SELECTABLE_TURN_INDEX) {
-      setSelectedText(null);
-      setShowLabelPopup(false);
-      return;
-    }
-
-    const rangeToStart = range.cloneRange();
-    rangeToStart.selectNodeContents(turnElement);
-    rangeToStart.setEnd(range.startContainer, range.startOffset);
-
-    const rangeToEnd = range.cloneRange();
-    rangeToEnd.selectNodeContents(turnElement);
-    rangeToEnd.setEnd(range.endContainer, range.endOffset);
-
-    const offsetInTurn = rangeToStart.toString().length;
-    const endOffsetInTurn = rangeToEnd.toString().length;
-
-    if (
-      offsetInTurn < 0 ||
-      endOffsetInTurn <= offsetInTurn ||
-      endOffsetInTurn > targetTurn.text.length
-    ) {
-      console.error('Selected text falls outside the target turn');
-      return;
-    }
-
-    const rect = range.getBoundingClientRect();
-
-    setSelectedText({
-      text: targetTurn.text.substring(offsetInTurn, endOffsetInTurn),
-      offsetInTurn
-    });
-
-    setSelectedTurnIndex(selectedTurnIndex);
-
+    const rect = buttonElement.getBoundingClientRect();
     setLabelPopupPosition(getLabelPopupPosition(rect));
     setShowLabelPopup(true);
-    setSelectedLabelForPopup(null);
-    setEditingAnnotation(null);
   };
 
   const handleAddAnnotation = (label) => {
-    if (!label) return;
+    if (!label || !activeTurn) return;
 
     if (editingAnnotation) {
-      const updatedAnnotations = annotations.map(a =>
+      setAnnotations(annotations.map(a =>
         a.id === editingAnnotation.id
-          ? {
-              ...a,
-              label,
-              timestamp: new Date().toISOString()
-            }
+          ? { ...a, label, timestamp: new Date().toISOString() }
           : a
-      );
-      setAnnotations(updatedAnnotations);
-      setEditingAnnotation(null);
-      setShowLabelPopup(false);
-      setSelectedLabelForPopup(null);
-    } else if (selectedText) {
-      const text = selectedText.text;
-
+      ));
+    } else {
       const newAnnotation = {
         id: Date.now(),
-        text: text,
         label,
-        turnIndex: selectedTurnIndex,
-        offsetInTurn: selectedText.offsetInTurn,
+        turnIndex: activeTurn.turn_index,
         timestamp: new Date().toISOString()
       };
-
       setAnnotations([...annotations, newAnnotation]);
-      setSelectedText(null);
-      setShowLabelPopup(false);
-      setSelectedLabelForPopup(null);
-      window.getSelection().removeAllRanges();
     }
+
+    setActiveTurn(null);
+    setEditingAnnotation(null);
+    setShowLabelPopup(false);
+    setSelectedLabelForPopup(null);
   };
 
   const handleRemoveAnnotation = (annotationId) => {
@@ -278,39 +213,39 @@ function SocraticAnnotationInterface({ annotatorName, prolificId, cidNumber, onB
     setEditingAnnotation(null);
   };
 
-  const handleAnnotationClick = (annotation) => {
-    setEditingAnnotation(annotation);
-    setSelectedLabelForPopup(annotation.label);
+  const handleEditFromPanel = (annotation) => {
+    const turn = conversation.turns.find(t => t.turn_index === annotation.turnIndex);
+    if (!turn) return;
 
     const chatElement = chatDisplayRef.current;
-    if (chatElement) {
-      const annotatedElements = chatElement.querySelectorAll('.annotated-text');
-      for (let elem of annotatedElements) {
-        const elemAnnotationId = elem.getAttribute('data-annotation-id');
+    const targetButton = chatElement?.querySelector(`.socratic-annotate-btn[data-turn-index="${turn.turn_index}"]`);
 
-        if (elemAnnotationId && annotation.id && parseInt(elemAnnotationId) === annotation.id) {
-          elem.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          elem.style.outline = '3px solid #FFD700';
-          setTimeout(() => {
-            elem.style.outline = 'none';
-          }, 2000);
-
-          const rect = elem.getBoundingClientRect();
-          setLabelPopupPosition(getLabelPopupPosition(rect));
-          break;
-        }
-      }
+    if (targetButton) {
+      targetButton.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      handleAnnotateTurn(turn, targetButton);
     }
-
-    setShowLabelPopup(true);
   };
 
-  const buildPayload = () => ({
-    annotatorName,
-    prolificId,
-    cidNumber,
-    annotations
-  });
+  const buildPayload = () => {
+    const enrichedAnnotations = annotations.map(ann => {
+      const turn = conversation.turns.find(t => t.turn_index === ann.turnIndex);
+      const { start, end } = getLastParagraphRange(turn?.text || '');
+
+      return {
+        ...ann,
+        text: turn ? turn.text.substring(start, end) : '',
+        offsetInTurn: start,
+        endOffsetInTurn: end
+      };
+    });
+
+    return {
+      annotatorName,
+      prolificId,
+      cidNumber,
+      annotations: enrichedAnnotations
+    };
+  };
 
   const handleSave = async () => {
     if (!annotatorName || !prolificId) {
@@ -434,10 +369,8 @@ function SocraticAnnotationInterface({ annotatorName, prolificId, cidNumber, onB
             ref={chatDisplayRef}
             conversation={conversation}
             annotations={annotations}
-            onTextSelect={handleTextSelection}
-            onRemoveAnnotation={handleRemoveAnnotation}
+            onAnnotateTurn={handleAnnotateTurn}
             minSelectableTurnIndex={MIN_SELECTABLE_TURN_INDEX}
-            onAnnotationClick={handleAnnotationClick}
             socraticColors={SOCRATIC_COLORS}
             socraticLabels={SOCRATIC_LABELS}
           />
@@ -450,14 +383,14 @@ function SocraticAnnotationInterface({ annotatorName, prolificId, cidNumber, onB
             socraticColors={SOCRATIC_COLORS}
             socraticNumbers={SOCRATIC_NUMBERS}
             onRemoveAnnotation={handleRemoveAnnotation}
-            onEditAnnotation={handleAnnotationClick}
+            onEditAnnotation={handleEditFromPanel}
             editingAnnotation={editingAnnotation}
             minSelectableTurnIndex={MIN_SELECTABLE_TURN_INDEX}
           />
         </div>
       </div>
 
-      {showLabelPopup && (selectedText || editingAnnotation) && (
+      {showLabelPopup && activeTurn && (
         <SocraticLabelPopup
           position={labelPopupPosition}
           socraticLevels={SOCRATIC_LEVELS}
@@ -470,7 +403,7 @@ function SocraticAnnotationInterface({ annotatorName, prolificId, cidNumber, onB
           }}
           onCancel={() => {
             setShowLabelPopup(false);
-            setSelectedText(null);
+            setActiveTurn(null);
             setEditingAnnotation(null);
           }}
           isEditing={!!editingAnnotation}
