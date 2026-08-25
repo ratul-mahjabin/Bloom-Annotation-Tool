@@ -3,8 +3,40 @@
   max-width: calc(100vw - 24px);
 }
 
+.socratic-popup-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.socratic-popup-header h3 {
+  margin: 0;
+}
+
+.socratic-popup-close {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 6px;
+  background: #f0f0f0;
+  color: #666;
+  font-size: 0.9em;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.socratic-popup-close:hover {
+  background: #e0e0e0;
+  color: #333;
+}
+
 .socratic-selector-popup {
-  max-height: 420px;
+  max-height: 460px;
 }
 
 .socratic-option-popup {

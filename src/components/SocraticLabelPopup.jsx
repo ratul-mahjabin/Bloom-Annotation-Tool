@@ -9,7 +9,6 @@ function SocraticLabelPopup({
   socraticNumbers,
   selectedLabel,
   onLabelSelect,
-  onConfirm,
   onCancel,
   isEditing
 }) {
@@ -22,8 +21,11 @@ function SocraticLabelPopup({
         position: position.isFixed ? 'fixed' : 'absolute'
       }}
     >
-      <div className="popup-header">
+      <div className="popup-header socratic-popup-header">
         <h3>{isEditing ? '✎ Edit Label' : '🏷️ Select a Socratic Label'}</h3>
+        <button className="socratic-popup-close" onClick={onCancel} title="Cancel">
+          ✕
+        </button>
       </div>
 
       <div className="bloom-selector-popup socratic-selector-popup">
@@ -47,19 +49,6 @@ function SocraticLabelPopup({
             </span>
           </label>
         ))}
-      </div>
-
-      <div className="popup-actions">
-        <button
-          className="btn-confirm"
-          onClick={onConfirm}
-          disabled={!selectedLabel}
-        >
-          {isEditing ? '✓ Update' : '✓ Add'}
-        </button>
-        <button className="btn-cancel" onClick={onCancel}>
-          ✕ Cancel
-        </button>
       </div>
     </div>
   );

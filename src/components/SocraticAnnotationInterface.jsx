@@ -62,18 +62,23 @@ const getLabelPopupPosition = (rect) => {
   const margin = 12;
   const gap = 12;
   const popupWidth = Math.min(640, window.innerWidth - (margin * 2));
-  const popupHeight = Math.min(520, window.innerHeight - (margin * 2));
+  const popupHeight = Math.min(480, window.innerHeight - (margin * 2));
 
   let left = rect.right + gap;
   if (left + popupWidth > window.innerWidth - margin) {
     left = rect.left - popupWidth - gap;
   }
+  // Clamp left within the viewport in case both preferred placements overflow
+  // (e.g. a very wide popup on a narrow window).
+  left = Math.min(Math.max(margin, left), window.innerWidth - popupWidth - margin);
+
+  const top = Math.min(
+    Math.max(margin, rect.top + (rect.height / 2) - (popupHeight / 2)),
+    window.innerHeight - popupHeight - margin
+  );
 
   return {
-    top: Math.min(
-      Math.max(margin, rect.top + (rect.height / 2) - (popupHeight / 2)),
-      window.innerHeight - popupHeight - margin
-    ),
+    top: Math.max(margin, top),
     left: Math.max(margin, left),
     isFixed: true
   };
@@ -459,8 +464,10 @@ function SocraticAnnotationInterface({ annotatorName, prolificId, cidNumber, onB
           socraticLabels={SOCRATIC_LABELS}
           socraticNumbers={SOCRATIC_NUMBERS}
           selectedLabel={selectedLabelForPopup}
-          onLabelSelect={setSelectedLabelForPopup}
-          onConfirm={() => handleAddAnnotation(selectedLabelForPopup)}
+          onLabelSelect={(level) => {
+            setSelectedLabelForPopup(level);
+            handleAddAnnotation(level);
+          }}
           onCancel={() => {
             setShowLabelPopup(false);
             setSelectedText(null);
