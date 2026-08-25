@@ -302,7 +302,7 @@ app.post('/api/save-socratic-annotation', (req, res) => {
       }
     }
 
-    const annotatorDir = path.join(__dirname, 'annotations', annotatorName);
+    const annotatorDir = path.join(__dirname, 'annotations', 'socratic_annotation', annotatorName);
     if (!fs.existsSync(annotatorDir)) {
       fs.mkdirSync(annotatorDir, { recursive: true });
     }
@@ -404,7 +404,7 @@ app.get('/api/load-socratic-annotation/:annotatorName/:prolificId/:cidNumber', (
   try {
     const { annotatorName, prolificId, cidNumber } = req.params;
     const filename = `CID${cidNumber}_${annotatorName}_socratic.json`;
-    const filepath = path.join(__dirname, 'annotations', annotatorName, filename);
+    const filepath = path.join(__dirname, 'annotations', 'socratic_annotation', annotatorName, filename);
 
     if (!fs.existsSync(filepath)) {
       return res.status(404).json({ error: 'Annotation file not found' });
@@ -425,7 +425,7 @@ app.get('/api/socratic-annotation-status/:annotatorName/:prolificId/:cidNumber',
   try {
     const { annotatorName, prolificId, cidNumber } = req.params;
     const filename = `CID${cidNumber}_${annotatorName}_socratic.json`;
-    const filepath = path.join(__dirname, 'annotations', annotatorName, filename);
+    const filepath = path.join(__dirname, 'annotations', 'socratic_annotation', annotatorName, filename);
 
     if (!fs.existsSync(filepath)) {
       return res.json({ exists: false, complete: false });
