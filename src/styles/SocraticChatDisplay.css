@@ -1,0 +1,3 @@
+.chat-messages .message-text.non-selectable-message {
+  opacity: 0.6;
+}

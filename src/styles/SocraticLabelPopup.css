@@ -1,0 +1,20 @@
+.socratic-label-popup {
+  width: 640px;
+  max-width: calc(100vw - 24px);
+}
+
+.socratic-selector-popup {
+  max-height: 420px;
+}
+
+.socratic-option-popup {
+  align-items: center;
+  padding: 10px 12px;
+}
+
+.socratic-level-name {
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  font-size: 0.92em;
+}

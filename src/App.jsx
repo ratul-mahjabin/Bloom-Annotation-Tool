@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import AnnotationInterface from './components/AnnotationInterface';
+import SocraticAnnotationInterface from './components/SocraticAnnotationInterface';
 import ConversationSelector from './components/ConversationSelector';
 import './App.css';
 
@@ -8,6 +9,7 @@ function App() {
     return localStorage.getItem('annotatorName') || '';
   });
   const [tempName, setTempName] = useState('');
+  const [annotationMode, setAnnotationMode] = useState(null); // 'bloom' | 'socratic'
   const [selectedConversation, setSelectedConversation] = useState(null);
   const [selectedCID, setSelectedCID] = useState(null);
   const [selectedIndex, setSelectedIndex] = useState(null);
@@ -51,6 +53,12 @@ function App() {
     }
   };
 
+  const handleBackToModeSelect = () => {
+    setSelectedConversation(null);
+    setShowSelector(true);
+    setAnnotationMode(null);
+  };
+
   if (!annotatorName) {
     return (
       <div className="app-container">
@@ -84,13 +92,66 @@ function App() {
     );
   }
 
+  if (!annotationMode) {
+    return (
+      <div className="app-container">
+        <div className="setup-screen">
+          <h1>🌱 Bloom Annotation Tool</h1>
+          <div className="setup-box mode-select-box">
+            <h2>Welcome, {annotatorName}!</h2>
+            <p className="mode-select-subtitle">Choose which type of annotation you'd like to perform.</p>
+            <div className="mode-select-options">
+              <button
+                className="mode-select-button"
+                onClick={() => setAnnotationMode('bloom')}
+              >
+                <span className="mode-select-title">🌱 Bloom Annotation</span>
+                <span className="mode-select-desc">
+                  Highlight AI or User turns, apply Bloom's Taxonomy labels, and rate cognitive depth.
+                </span>
+              </button>
+              <button
+                className="mode-select-button"
+                onClick={() => setAnnotationMode('socratic')}
+              >
+                <span className="mode-select-title">💬 Socratic Annotation</span>
+                <span className="mode-select-desc">
+                  Highlight AI turns (from turn 3 onward) and classify each span with a single Socratic question type.
+                </span>
+              </button>
+            </div>
+            <button
+              className="btn-change-name mode-select-change-name"
+              onClick={() => setAnnotatorName('')}
+            >
+              Change Name
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="app-container">
       {showSelector ? (
         <ConversationSelector
           annotatorName={annotatorName}
+          annotationMode={annotationMode}
           onSelectConversation={handleConversationSelect}
           onChangeName={() => setAnnotatorName('')}
+          onChangeMode={handleBackToModeSelect}
+        />
+      ) : annotationMode === 'socratic' ? (
+        <SocraticAnnotationInterface
+          key={`${selectedCID}:${selectedConversation}`}
+          annotatorName={annotatorName}
+          prolificId={selectedConversation}
+          cidNumber={selectedCID}
+          onBack={handleBackToSelector}
+          onNavigate={handleNavigate}
+          canGoPrev={selectedIndex > 0}
+          canGoNext={selectedIndex < conversations.length - 1}
         />
       ) : (
         <AnnotationInterface

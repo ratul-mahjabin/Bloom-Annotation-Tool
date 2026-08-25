@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import '../styles/ConversationSelector.css';
 
-function ConversationSelector({ annotatorName, onSelectConversation, onChangeName }) {
+function ConversationSelector({ annotatorName, annotationMode = 'bloom', onSelectConversation, onChangeName, onChangeMode }) {
   const [conversations, setConversations] = useState([]);
   const [filteredConversations, setFilteredConversations] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -9,10 +9,13 @@ function ConversationSelector({ annotatorName, onSelectConversation, onChangeNam
   const [completeCount, setCompleteCount] = useState(0);
   const [confusedCases, setConfusedCases] = useState([]);
   const [confusedPanelOpen, setConfusedPanelOpen] = useState(false);
+  const isSocratic = annotationMode === 'socratic';
 
   useEffect(() => {
     fetchConversations();
-    fetchConfusedCases();
+    if (!isSocratic) {
+      fetchConfusedCases();
+    }
   }, []);
 
   useEffect(() => {
@@ -45,13 +48,14 @@ function ConversationSelector({ annotatorName, onSelectConversation, onChangeNam
   };
 
   const countComplete = async (prolificIds) => {
+    const statusEndpoint = isSocratic ? 'socratic-annotation-status' : 'annotation-status';
     let count = 0;
     for (let index = 0; index < prolificIds.length; index++) {
       const id = prolificIds[index];
       const cidNumber = index + 1;
       try {
         const response = await fetch(
-          `/api/annotation-status/${encodeURIComponent(annotatorName)}/${id}/${cidNumber}`
+          `/api/${statusEndpoint}/${encodeURIComponent(annotatorName)}/${id}/${cidNumber}`
         );
         const data = await response.json();
         if (data.complete) count++;
@@ -84,12 +88,18 @@ function ConversationSelector({ annotatorName, onSelectConversation, onChangeNam
     <div className="selector-container">
       <header className="selector-header">
         <div className="header-content">
-          <h1>🌱 Bloom Annotation Tool</h1>
+          <h1>{isSocratic ? '💬 Socratic Annotation Tool' : '🌱 Bloom Annotation Tool'}</h1>
           <div className="header-info">
             <span className="annotator-name">Annotator: <strong>{annotatorName}</strong></span>
+            <span className="mode-badge">{isSocratic ? '💬 Socratic mode' : '🌱 Bloom mode'}</span>
             <span className="progress-badge">
               {completeCount} / {conversations.length} complete
             </span>
+            {onChangeMode && (
+              <button className="btn-change-name" onClick={onChangeMode}>
+                Change Mode
+              </button>
+            )}
             <button className="btn-change-name" onClick={onChangeName}>
               Change Name
             </button>
@@ -97,7 +107,8 @@ function ConversationSelector({ annotatorName, onSelectConversation, onChangeNam
         </div>
       </header>
 
-      {/* Collapsible Confused Cases Panel */}
+      {/* Collapsible Confused Cases Panel (Bloom mode only) */}
+      {!isSocratic && (
       <div className={`confused-panel ${confusedPanelOpen ? 'open' : ''}`}>
         <button
           className="confused-panel-bar"
@@ -150,6 +161,7 @@ function ConversationSelector({ annotatorName, onSelectConversation, onChangeNam
           </div>
         )}
       </div>
+      )}
 
       <div className="selector-content">
         <div className="search-box">
@@ -179,6 +191,7 @@ function ConversationSelector({ annotatorName, onSelectConversation, onChangeNam
                     prolificId={prolificId}
                     cidNumber={actualIndex}
                     annotatorName={annotatorName}
+                    isSocratic={isSocratic}
                     onSelect={() => onSelectConversation(prolificId, actualIndex, conversations, actualIndex - 1)}
                   />
                 );
@@ -191,7 +204,7 @@ function ConversationSelector({ annotatorName, onSelectConversation, onChangeNam
   );
 }
 
-function ConversationCard({ prolificId, cidNumber, annotatorName, onSelect }) {
+function ConversationCard({ prolificId, cidNumber, annotatorName, isSocratic, onSelect }) {
   // status: 'not_started' | 'in_progress' | 'complete'
   const [status, setStatus] = useState('not_started');
 
@@ -201,8 +214,9 @@ function ConversationCard({ prolificId, cidNumber, annotatorName, onSelect }) {
 
   const checkStatus = async () => {
     try {
+      const statusEndpoint = isSocratic ? 'socratic-annotation-status' : 'annotation-status';
       const response = await fetch(
-        `/api/annotation-status/${encodeURIComponent(annotatorName)}/${encodeURIComponent(prolificId)}/${cidNumber}`
+        `/api/${statusEndpoint}/${encodeURIComponent(annotatorName)}/${encodeURIComponent(prolificId)}/${cidNumber}`
       );
       const data = await response.json();
       if (!data.exists) {

@@ -235,6 +235,152 @@ app.post('/api/save-annotation', (req, res) => {
   }
 });
 
+const SOCRATIC_LABELS = [
+  'clarification', 'purpose', 'assumptions', 'evidence', 'viewpoints',
+  'implications', 'question_itself', 'concepts', 'inferences', 'non_socratic'
+];
+
+app.post('/api/save-socratic-annotation', (req, res) => {
+  try {
+    const { annotatorName, prolificId, cidNumber, annotations } = req.body;
+
+    if (!annotatorName || !prolificId) {
+      return res.status(400).json({ error: 'Missing annotatorName or prolificId' });
+    }
+
+    const conversation = conversations[prolificId];
+
+    if (!conversation) {
+      return res.status(404).json({ error: 'Conversation not found' });
+    }
+
+    if (!Array.isArray(annotations)) {
+      return res.status(400).json({ error: 'Annotations must be an array' });
+    }
+
+    for (let index = 0; index < annotations.length; index++) {
+      const annotation = annotations[index];
+      const annotationText = annotation?.text ?? annotation?.extracted_text;
+      const turnIndex = annotation?.turnIndex ?? annotation?.turn_index;
+      const offsetInTurn = annotation?.offsetInTurn ?? annotation?.start_char_in_turn;
+      const label = annotation?.label;
+      const turn = conversation.turns.find(t => t.turn_index === turnIndex);
+
+      if (!turn) {
+        return res.status(400).json({
+          error: `Annotation ${index + 1} references a turn that is not in this conversation`
+        });
+      }
+
+      if (turn.role !== 'assistant') {
+        return res.status(400).json({
+          error: `Annotation ${index + 1} must reference an AI turn`
+        });
+      }
+
+      if (
+        typeof annotationText !== 'string' ||
+        !Number.isInteger(offsetInTurn) ||
+        typeof label !== 'string' ||
+        !SOCRATIC_LABELS.includes(label)
+      ) {
+        return res.status(400).json({
+          error: `Annotation ${index + 1} has invalid text, label, or offset data`
+        });
+      }
+
+      if (offsetInTurn < 0 || offsetInTurn + annotationText.length > turn.text.length) {
+        return res.status(400).json({
+          error: `Annotation ${index + 1} falls outside its referenced turn`
+        });
+      }
+
+      if (turn.text.substring(offsetInTurn, offsetInTurn + annotationText.length) !== annotationText) {
+        return res.status(400).json({
+          error: `Annotation ${index + 1} text does not match its referenced turn`
+        });
+      }
+    }
+
+    const annotatorDir = path.join(__dirname, 'annotations', annotatorName);
+    if (!fs.existsSync(annotatorDir)) {
+      fs.mkdirSync(annotatorDir, { recursive: true });
+    }
+
+    const enhancedAnnotations = annotations.map(ann => {
+      const annotationText = ann.text ?? ann.extracted_text;
+      const turnIndex = ann.turnIndex ?? ann.turn_index;
+      const offsetInTurn = ann.offsetInTurn ?? ann.start_char_in_turn;
+
+      const turnWithAnnotation = conversation.turns.find(t => t.turn_index === turnIndex);
+      const turnIdx = conversation.turns.findIndex(t => t.turn_index === turnIndex);
+
+      const beforeTurn = turnIdx > 0 ? conversation.turns[turnIdx - 1] : null;
+      const afterTurn = turnIdx < conversation.turns.length - 1 ? conversation.turns[turnIdx + 1] : null;
+
+      const extractedText = turnWithAnnotation.text.substring(
+        offsetInTurn,
+        offsetInTurn + annotationText.length
+      );
+
+      return {
+        id: ann.id,
+        extracted_text: extractedText,
+        label: ann.label,
+
+        turn_index: turnIndex,
+        start_char_in_turn: offsetInTurn,
+        end_char_in_turn: offsetInTurn + annotationText.length,
+
+        text_matches: extractedText === annotationText,
+
+        context: {
+          before_turn_index: beforeTurn?.turn_index ?? null,
+          before_text: beforeTurn?.text ?? null,
+          after_turn_index: afterTurn?.turn_index ?? null,
+          after_text: afterTurn?.text ?? null
+        },
+
+        turn_role: turnWithAnnotation.role,
+        turn_stage: turnWithAnnotation.stage,
+
+        timestamp: ann.timestamp
+      };
+    });
+
+    const saveData = {
+      annotatorName,
+      prolificId,
+      metadata: {
+        totalTurns: conversation.turns.length,
+        totalAnnotations: annotations.length,
+        socraticLabelsUsed: [...new Set(annotations.map(a => a.label))],
+        annotationDate: new Date().toISOString()
+      },
+      conversation: {
+        prolificId: conversation.prolificId,
+        username: conversation.username,
+        turns: conversation.turns
+      },
+      spanAnnotations: enhancedAnnotations,
+      timestamp: new Date().toISOString()
+    };
+
+    const filename = `CID${cidNumber}_${annotatorName}_socratic.json`;
+    const filepath = path.join(annotatorDir, filename);
+    fs.writeFileSync(filepath, JSON.stringify(saveData, null, 2));
+
+    res.json({
+      success: true,
+      message: `Annotation saved to ${filename}`,
+      filepath
+    });
+  } catch (err) {
+    console.error('Error saving socratic annotation:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // Load annotations for editing
 app.get('/api/load-annotation/:annotatorName/:prolificId/:cidNumber', (req, res) => {
   try {
@@ -248,6 +394,57 @@ app.get('/api/load-annotation/:annotatorName/:prolificId/:cidNumber', (req, res)
     
     const data = fs.readFileSync(filepath, 'utf-8');
     res.json(JSON.parse(data));
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Load socratic annotations for editing
+app.get('/api/load-socratic-annotation/:annotatorName/:prolificId/:cidNumber', (req, res) => {
+  try {
+    const { annotatorName, prolificId, cidNumber } = req.params;
+    const filename = `CID${cidNumber}_${annotatorName}_socratic.json`;
+    const filepath = path.join(__dirname, 'annotations', annotatorName, filename);
+
+    if (!fs.existsSync(filepath)) {
+      return res.status(404).json({ error: 'Annotation file not found' });
+    }
+
+    const data = fs.readFileSync(filepath, 'utf-8');
+    res.json(JSON.parse(data));
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+const SOCRATIC_MIN_SELECTABLE_TURN_INDEX = 3;
+
+// Get socratic annotation status: exists, complete (every eligible AI turn
+// at or after SOCRATIC_MIN_SELECTABLE_TURN_INDEX has at least one annotation)
+app.get('/api/socratic-annotation-status/:annotatorName/:prolificId/:cidNumber', (req, res) => {
+  try {
+    const { annotatorName, prolificId, cidNumber } = req.params;
+    const filename = `CID${cidNumber}_${annotatorName}_socratic.json`;
+    const filepath = path.join(__dirname, 'annotations', annotatorName, filename);
+
+    if (!fs.existsSync(filepath)) {
+      return res.json({ exists: false, complete: false });
+    }
+
+    const data = JSON.parse(fs.readFileSync(filepath, 'utf-8'));
+    const spanAnnotations = data.spanAnnotations || [];
+    const turns = data.conversation?.turns || [];
+
+    const eligibleTurnIndexes = turns
+      .filter(t => t.role === 'assistant' && t.turn_index >= SOCRATIC_MIN_SELECTABLE_TURN_INDEX)
+      .map(t => t.turn_index);
+
+    const annotatedTurnIndexes = new Set(spanAnnotations.map(a => a.turn_index));
+
+    const complete = eligibleTurnIndexes.length > 0 &&
+      eligibleTurnIndexes.every(idx => annotatedTurnIndexes.has(idx));
+
+    res.json({ exists: true, complete });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
