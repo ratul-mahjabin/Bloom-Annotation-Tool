@@ -1,4 +1,4 @@
-# Bloom Annotation Tool
+# Bloom-Socratic Annotation Tool
 
 ## 📌 Purpose
 
